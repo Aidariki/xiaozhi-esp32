@@ -1,124 +1,124 @@
-menu "Xiaozhi Assistant"
+menu "Ассистент XiaoZhi"
 
 config OTA_URL
-    string "Default OTA URL"
+    string "URL OTA по умолчанию"
     default "https://api.tenclass.net/xiaozhi/ota/"
     help
-        The application will access this URL to check for new firmwares and server address.
+        Приложение обращается по этому URL для проверки новых прошивок и адреса сервера.
 
 choice
-    prompt "Flash Assets"
+    prompt "Прошивка ресурсов (assets)"
     default FLASH_DEFAULT_ASSETS if !USE_EMOTE_MESSAGE_STYLE
     default FLASH_EXPRESSION_ASSETS if USE_EMOTE_MESSAGE_STYLE
     help
-        Select the assets to flash.
+        Выберите ресурсы для прошивки в раздел assets.
 
     config FLASH_NONE_ASSETS
-        bool "Do not flash assets"
+        bool "Не прошивать assets"
     config FLASH_DEFAULT_ASSETS
-        bool "Flash Default Assets"
+        bool "Прошить стандартные assets"
         depends on !USE_EMOTE_MESSAGE_STYLE
     config FLASH_CUSTOM_ASSETS
-        bool "Flash Custom Assets"
+        bool "Прошить пользовательские assets"
     config FLASH_EXPRESSION_ASSETS
-        bool "Flash Emote Assets"
+        bool "Прошить assets эмоций (Emote)"
         depends on USE_EMOTE_MESSAGE_STYLE
 endchoice
 
 config CUSTOM_ASSETS_FILE
     depends on FLASH_CUSTOM_ASSETS
-    string "Custom Assets File"
+    string "Файл пользовательских assets"
     default "assets.bin"
     help
-        The custom assets file to flash.
-        It can be a local file relative to the project directory or a remote url.
+        Файл пользовательских assets для прошивки.
+        Можно указать локальный путь относительно проекта или удалённый URL.
 
 choice
-    prompt "Default Language"
-    default LANGUAGE_ZH_CN
+    prompt "Язык интерфейса по умолчанию"
+    default LANGUAGE_RU_RU
     help
-        Select device display language
+        Выберите язык отображения на устройстве
 
     config LANGUAGE_ZH_CN
-        bool "Chinese"
+        bool "Китайский (упрощённый)"
     config LANGUAGE_ZH_TW
-        bool "Chinese Traditional"
+        bool "Китайский (традиционный)"
     config LANGUAGE_EN_US
-        bool "English"
+        bool "Английский"
     config LANGUAGE_JA_JP
-        bool "Japanese"
+        bool "Японский"
     config LANGUAGE_KO_KR
-        bool "Korean"
+        bool "Корейский"
     config LANGUAGE_VI_VN
-        bool "Vietnamese"
+        bool "Вьетнамский"
     config LANGUAGE_TH_TH
-        bool "Thai"
+        bool "Тайский"
     config LANGUAGE_DE_DE
-        bool "German"
+        bool "Немецкий"
     config LANGUAGE_FR_FR
-        bool "French"
+        bool "Французский"
     config LANGUAGE_ES_ES
-        bool "Spanish"
+        bool "Испанский"
     config LANGUAGE_IT_IT
-        bool "Italian"
+        bool "Итальянский"
     config LANGUAGE_RU_RU
-        bool "Russian"
+        bool "Русский"
     config LANGUAGE_AR_SA
-        bool "Arabic"
+        bool "Арабский"
     config LANGUAGE_HI_IN
-        bool "Hindi"
+        bool "Хинди"
     config LANGUAGE_PT_PT
-        bool "Portuguese"
+        bool "Португальский"
     config LANGUAGE_PL_PL
-        bool "Polish"
+        bool "Польский"
     config LANGUAGE_CS_CZ
-        bool "Czech"
+        bool "Чешский"
     config LANGUAGE_FI_FI
-        bool "Finnish"
+        bool "Финский"
     config LANGUAGE_TR_TR
-        bool "Turkish"
+        bool "Турецкий"
     config LANGUAGE_ID_ID
-        bool "Indonesian"
+        bool "Индонезийский"
     config LANGUAGE_UK_UA
-        bool "Ukrainian"
+        bool "Украинский"
     config LANGUAGE_RO_RO
-        bool "Romanian"
+        bool "Румынский"
     config LANGUAGE_BG_BG
-        bool "Bulgarian"
+        bool "Болгарский"
     config LANGUAGE_CA_ES
-        bool "Catalan"
+        bool "Каталанский"
     config LANGUAGE_DA_DK
-        bool "Danish"
+        bool "Датский"
     config LANGUAGE_EL_GR
-        bool "Greek"
+        bool "Греческий"
     config LANGUAGE_FA_IR
-        bool "Persian"
+        bool "Персидский"
     config LANGUAGE_FIL_PH
-        bool "Filipino"
+        bool "Филиппинский"
     config LANGUAGE_HE_IL
-        bool "Hebrew"
+        bool "Иврит"
     config LANGUAGE_HR_HR
-        bool "Croatian"
+        bool "Хорватский"
     config LANGUAGE_HU_HU
-        bool "Hungarian"
+        bool "Венгерский"
     config LANGUAGE_MS_MY
-        bool "Malay"
+        bool "Малайский"
     config LANGUAGE_NB_NO
-        bool "Norwegian"
+        bool "Норвежский"
     config LANGUAGE_NL_NL
-        bool "Dutch"
+        bool "Нидерландский"
     config LANGUAGE_SK_SK
-        bool "Slovak"
+        bool "Словацкий"
     config LANGUAGE_SL_SI
-        bool "Slovenian"
+        bool "Словенский"
     config LANGUAGE_SV_SE
-        bool "Swedish"
+        bool "Шведский"
     config LANGUAGE_SR_RS
-        bool "Serbian"
+        bool "Сербский"
 endchoice
 
 choice BOARD_TYPE
-    prompt "Target Board"
+    prompt "Целевая плата"
     default BOARD_TYPE_BREAD_COMPACT_ESP32 if IDF_TARGET_ESP32
     default BOARD_TYPE_XMINI_C3_V3 if IDF_TARGET_ESP32C3
     default BOARD_TYPE_ESP_SENSAIRSHUTTLE if IDF_TARGET_ESP32C5
@@ -127,8 +127,8 @@ choice BOARD_TYPE
     default BOARD_TYPE_ESP32_P4_FUNCTION_EV_BOARD if IDF_TARGET_ESP32P4
     default BOARD_TYPE_ESP32_S31_FUNCTION_COREBOARD_1 if IDF_TARGET_ESP32S31
     help
-        Select the physical board hardware implementation.
-        The OTA board type and firmware variant name are configured separately.
+        Выберите физическую плату (аппаратную реализацию).
+        Тип платы для OTA и имя варианта прошивки задаются отдельно в config.json.
 
     config BOARD_TYPE_ATK_DNESP32S3
         bool "Alientek ATK-DNESP32S3 Development Board (正点原子)"
@@ -619,73 +619,73 @@ choice BOARD_TYPE
 endchoice
 
 choice XIAOZHI_NETWORK_TYPE
-    prompt "Network Type"
+    prompt "Тип сети"
     depends on BOARD_TYPE_WAVESHARE_ESP32_P4_NANO
     default XIAOZHI_NETWORK_WIFI
     help
-        Select the network connection used by this board.
+        Выберите тип сетевого подключения для этой платы.
 
     config XIAOZHI_NETWORK_WIFI
-        bool "WiFi"
+        bool "Wi-Fi"
 
     config XIAOZHI_NETWORK_ETHERNET
         bool "Ethernet"
         select ETH_ENABLED
         select ETH_USE_ESP32_EMAC
         help
-            Use the onboard Ethernet port for network access.
+            Использовать встроенный Ethernet-порт для доступа в сеть.
 endchoice
 
-menu "Ethernet Configuration"
+menu "Настройка Ethernet"
     depends on XIAOZHI_NETWORK_ETHERNET
 
     choice XIAOZHI_ETH_PHY_MODEL
-        prompt "Ethernet PHY Device"
+        prompt "Микросхема Ethernet PHY"
         default XIAOZHI_ETH_PHY_IP101
 
         config XIAOZHI_ETH_PHY_IP101
             bool "IP101/IP101GR"
             help
-                IP101/IP101GR 10/100M Ethernet PHY, used by Waveshare ESP32-P4-NANO.
+                Ethernet PHY IP101/IP101GR 10/100 Мбит/с (Waveshare ESP32-P4-NANO).
     endchoice
 
     config XIAOZHI_ETH_MDC_GPIO
-        int "Ethernet SMI MDC GPIO"
+        int "GPIO Ethernet SMI MDC"
         range 0 54
         default 31 if BOARD_TYPE_WAVESHARE_ESP32_P4_NANO
         default 31
         help
-            GPIO used by the Ethernet SMI MDC signal.
+            GPIO линии Ethernet SMI MDC.
 
     config XIAOZHI_ETH_MDIO_GPIO
-        int "Ethernet SMI MDIO GPIO"
+        int "GPIO Ethernet SMI MDIO"
         range 0 54
         default 52 if BOARD_TYPE_WAVESHARE_ESP32_P4_NANO
         default 52
         help
-            GPIO used by the Ethernet SMI MDIO signal.
+            GPIO линии Ethernet SMI MDIO.
 
     config XIAOZHI_ETH_PHY_ADDR
-        int "Ethernet PHY Address"
+        int "Адрес Ethernet PHY"
         range -1 31
         default 1
         help
-            Set the PHY address according to the board schematic.
-            Use -1 to let the driver search for the PHY address.
+            Адрес PHY по схеме платы.
+            Укажите -1, чтобы драйвер искал адрес автоматически.
 
     config XIAOZHI_ETH_PHY_RST_GPIO
-        int "Ethernet PHY Reset GPIO"
+        int "GPIO сброса Ethernet PHY"
         range -1 54
         default 51 if BOARD_TYPE_WAVESHARE_ESP32_P4_NANO
         default -1
         help
-            GPIO used to reset the Ethernet PHY. Set to -1 if not connected.
+            GPIO сброса Ethernet PHY. Укажите -1, если не подключён.
 
 endmenu
 
 choice ESP32_S3_LCD_EV_BOARD_VERSION
     depends on BOARD_TYPE_ESP32_S3_LCD_EV_BOARD
-    prompt "EV_BOARD Type"
+    prompt "Тип EV_BOARD"
     default ESP32_S3_LCD_EV_BOARD_V1_4
     config ESP32_S3_LCD_EV_BOARD_V1_4
         bool "Espressif ESP32-S3-LCD-EV-Board-MB v1.4"
@@ -696,10 +696,10 @@ endchoice
 
 choice WK_ESP32S3_DEV_DISPLAY_TYPE
     depends on BOARD_TYPE_WK_ESP32S3_DEV
-    prompt "WK ESP32S3 DEV Display Type"
+    prompt "Тип дисплея WK ESP32S3 DEV"
     default WK_ESP32S3_DEV_DISPLAY_OLED
     help
-        Select display type for WK ESP32S3 DEV board.
+        Выберите тип дисплея для платы WK ESP32S3 DEV.
 
     config WK_ESP32S3_DEV_DISPLAY_OLED
         bool "OLED"
@@ -711,7 +711,7 @@ endchoice
 
 choice DISPLAY_OLED_TYPE
     depends on BOARD_TYPE_BREAD_COMPACT_WIFI || BOARD_TYPE_BREAD_COMPACT_ML307 || BOARD_TYPE_BREAD_COMPACT_NT26 || BOARD_TYPE_BREAD_COMPACT_ESP32 || BOARD_TYPE_HU_087 || (BOARD_TYPE_WK_ESP32S3_DEV && WK_ESP32S3_DEV_DISPLAY_OLED)
-    prompt "OLED Type"
+    prompt "Тип OLED"
     default OLED_SSD1306_128X32
     help
         OLED Monochrome Display Type
@@ -726,7 +726,7 @@ endchoice
 
 choice DISPLAY_LCD_TYPE
     depends on BOARD_TYPE_BREAD_COMPACT_WIFI_LCD || BOARD_TYPE_BREAD_COMPACT_ESP32_LCD || BOARD_TYPE_WDMOMO_CGC || BOARD_TYPE_BREAD_COMPACT_WIFI_CAM || (BOARD_TYPE_WK_ESP32S3_DEV && WK_ESP32S3_DEV_DISPLAY_LCD)
-    prompt "LCD Type"
+    prompt "Тип LCD"
     default LCD_ST7789_240X320
     help
         LCD Display Type
@@ -763,25 +763,25 @@ choice DISPLAY_LCD_TYPE
     config LCD_NV3030B_240X320
         bool "NV3030B, 分辨率240*320, IPS"
     config LCD_CUSTOM
-        bool "Custom LCD (自定义屏幕参数)"
+        bool "Свой LCD (пользовательские параметры)"
 endchoice
 
 choice WK_BOARD_TYPE
     depends on BOARD_TYPE_WK_ESP32S3_DEV
-    prompt "BOARD_TYPE_WK_ESP32S3_DEV"
+    prompt "Параметры WK ESP32S3 DEV"
     default BOARD_NO_MOTOR_CONTROL
     help
         Board Type
     config BOARD_HAVE_MOTOR_CONTROL
-        bool "带电机驱动"
+        bool "С драйвером мотора"
     config BOARD_NO_MOTOR_CONTROL
-        bool "不带电机驱动"    
+        bool "Без драйвера мотора"    
 endchoice
 
 
 choice DISPLAY_ESP32S3_KORVO2_V3
     depends on BOARD_TYPE_ESP32_S3_KORVO_2_V3 || BOARD_TYPE_ESP32_S3_KORVO_2_V3_RNDIS
-    prompt "ESP32S3_KORVO2_V3 LCD Type"
+    prompt "Тип LCD ESP32-S3-Korvo-2 V3"
     default ESP32S3_KORVO2_V3_LCD_ST7789
     help
         LCD Display Type
@@ -793,7 +793,7 @@ endchoice
 
 choice DISPLAY_ESP32S3_CAM_XXXX
     depends on BOARD_TYPE_WAVESHARE_ESP32_S3_CAM_XXXX
-    prompt "ESP32S3_CAM LCD Type"
+    prompt "Тип LCD ESP32-S3-CAM"
     default BSP_LCD_SIZE_2INCH
     help
         LCD Display Type
@@ -812,7 +812,7 @@ endchoice
 
 choice DISPLAY_ESP32S3_AUDIO_BOARD
     depends on BOARD_TYPE_WAVESHARE_ESP32_S3_AUDIO_BOARD
-    prompt "ESP32S3_AUDIO_BOARD LCD Type"
+    prompt "Тип LCD ESP32-S3 Audio Board"
     default AUDIO_BOARD_LCD_JD9853
     help
         LCD Display Type
@@ -824,73 +824,73 @@ endchoice
 
 choice DISPLAY_ESP32S3_TOUCH_LCD_1_85C
     depends on BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_1_85C
-    prompt "ESP32S3_TOUCH_LCD_1_85C version"
+    prompt "Версия ESP32-S3 Touch LCD 1.85C"
     default VERSION_2_0
     help
         hardware version
     config VERSION_1_0
-        bool "version 1.0"
+        bool "Версия 1.0"
     config VERSION_2_0
-        bool "version 2.0"
+        bool "Версия 2.0"
 endchoice
 
 
 choice DISPLAY_STYLE
-    prompt "Select display style"
+    prompt "Стиль отображения сообщений"
     default USE_DEFAULT_MESSAGE_STYLE
     help
-        Select display style for Xiaozhi device
+        Выберите стиль отображения сообщений на устройстве XiaoZhi
 
     config USE_DEFAULT_MESSAGE_STYLE
-        bool "Enable default message style"
+        bool "Стандартный стиль сообщений"
 
     config USE_WECHAT_MESSAGE_STYLE
-        bool "Enable WeChat Message Style"
+        bool "Стиль сообщений WeChat"
 
     config USE_EMOTE_MESSAGE_STYLE
-        bool "Emote animation style"
+        bool "Стиль анимации эмоций (Emote)"
         depends on BOARD_TYPE_ESP32_S3_BOX || BOARD_TYPE_ESP32_S3_BOX_3 \
             || BOARD_TYPE_ESP_VOCAT || BOARD_TYPE_LICHUANG_DEV_S3 || BOARD_TYPE_RYMCU_BIGSMART \
             || BOARD_TYPE_ESP_SENSAIRSHUTTLE
 endchoice
 
 config USE_MULTILINE_CHAT_MESSAGE
-    bool "Use multiline chat message display (default mode only)"
+    bool "Многострочный чат (только стандартный режим)"
     depends on USE_DEFAULT_MESSAGE_STYLE
     default n
     help
-        When enabled, the chat message area in the default display mode shows
-        multiple wrapped lines that grow upward from the bottom of the screen,
-        with auto-adaptive height.
-        When disabled (default), a single-line horizontally scrolling label
-        is shown at the bottom of the screen.
+        Если включено, область чата в стандартном режиме показывает несколько
+        переносимых строк, растущих вверх от нижнего края экрана
+        (высота подстраивается автоматически).
+        Если выключено (по умолчанию) — одна строка с горизонтальной прокруткой
+        внизу экрана.
 
 choice WAKE_WORD_TYPE
-    prompt "Wake Word Implementation Type"
+    prompt "Реализация слова активации"
     default USE_AFE_WAKE_WORD if (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31) && SPIRAM
     default WAKE_WORD_DISABLED
     help
-        Choose the type of wake word implementation to use
+        Выберите способ реализации слова активации
 
     config WAKE_WORD_DISABLED
-        bool "Disabled"
+        bool "Отключено"
         help
             Disable wake word detection
 
     config USE_ESP_WAKE_WORD
-        bool "Wakenet model without AFE"
+        bool "Модель Wakenet без AFE"
         depends on IDF_TARGET_ESP32C3 || IDF_TARGET_ESP32C5 || IDF_TARGET_ESP32C6 || (IDF_TARGET_ESP32 && SPIRAM)
         help
             Support ESP32 C3、ESP32 C5 与 ESP32 C6, and (ESP32 with PSRAM)
 
     config USE_AFE_WAKE_WORD
-        bool "Wakenet model with AFE"
+        bool "Модель Wakenet с AFE"
         depends on (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31) && SPIRAM
         help
             Support AEC if available, requires ESP32-S3, ESP32-P4, or ESP32-S31 and PSRAM
 
     config USE_CUSTOM_WAKE_WORD
-        bool "Multinet model (Custom Wake Word)"
+        bool "Модель Multinet (своё слово активации)"
         depends on (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31) && SPIRAM
         help
             Requires ESP32-S3, ESP32-P4, or ESP32-S31 and PSRAM
@@ -898,55 +898,54 @@ choice WAKE_WORD_TYPE
 endchoice
 
 config CUSTOM_WAKE_WORD
-    string "Custom Wake Word"
+    string "Своё слово активации"
     default "xiao tu dou"
     depends on USE_CUSTOM_WAKE_WORD
     help
-        Custom Wake Word, use pinyin for Chinese, separated by spaces
+        Своё слово активации; для китайского — пиньинь через пробел
 
 config CUSTOM_WAKE_WORD_DISPLAY
-    string "Custom Wake Word Display"
+    string "Отображение слова активации"
     default "小土豆"
     depends on USE_CUSTOM_WAKE_WORD
     help
-        Greeting sent to the server after wake word detection
+        Приветствие, отправляемое на сервер после обнаружения слова активации
 
 config CUSTOM_WAKE_WORD_THRESHOLD
-    int "Custom Wake Word Threshold (%)"
+    int "Порог слова активации (%)"
     default 20
     range 1 99
     depends on USE_CUSTOM_WAKE_WORD
     help
-        Custom Wake Word Threshold, range 1-99, the smaller the more sensitive, default 20
+        Порог слова активации (1–99); чем меньше, тем чувствительнее; по умолчанию 20
 
 config SEND_WAKE_WORD_DATA
-    bool "Send Wake Word Data"
+    bool "Отправлять данные слова активации"
     default y
     depends on USE_AFE_WAKE_WORD || USE_CUSTOM_WAKE_WORD
     help
-        Send wake word data to the server as the first message of the conversation and wait for response
+        Отправлять данные слова активации на сервер как первое сообщение диалога и ждать ответа
 
 config WAKE_WORD_DETECTION_IN_LISTENING
-    bool "Enable Wake Word Detection in Listening Mode"
+    bool "Распознавание слова активации в режиме прослушивания"
     default n
     depends on USE_AFE_WAKE_WORD || USE_CUSTOM_WAKE_WORD
     help
-        Enable wake word detection while in listening mode.
-        When enabled, the device can detect wake word during listening,
-        which allows interrupting the current conversation.
-        When disabled (default), wake word detection is turned off during listening.
+        Распознавать слово активации в режиме прослушивания.
+        Позволяет прервать текущий диалог словом активации.
+        Если выключено (по умолчанию) — в режиме прослушивания детекция отключена.
 
 config USE_AUDIO_PROCESSOR
-    bool "Enable AFE Audio Processing"
+    bool "Обработка звука AFE"
     default y
     depends on (IDF_TARGET_ESP32S3 || IDF_TARGET_ESP32P4 || IDF_TARGET_ESP32S31) && SPIRAM
     help
-        Enable the shared AFE uplink path with AEC and VAD. Noise suppression
-        is not enabled because this project does not provide an NSNet model.
-        Requires ESP32-S3, ESP32-P4, or ESP32-S31 with PSRAM.
+        Общий uplink-путь AFE с AEC и VAD. Подавление шума не включается —
+        в проекте нет модели NSNet.
+        Требуется ESP32-S3, ESP32-P4 или ESP32-S31 с PSRAM.
 
 config USE_DEVICE_AEC
-    bool "Enable Device-Side AEC"
+    bool "AEC на устройстве"
     default n
         depends on USE_AUDIO_PROCESSOR && (BOARD_TYPE_ESP32_S3_BOX_3 || BOARD_TYPE_ESP32_S3_BOX || BOARD_TYPE_ESP32_S3_BOX_LITE \
         || BOARD_TYPE_LICHUANG_DEV_S3 || BOARD_TYPE_RYMCU_BIGSMART || BOARD_TYPE_ESP32_S3_KORVO_2_V3 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75|| BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_75C || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_1_83\
@@ -957,26 +956,15 @@ config USE_DEVICE_AEC
         || BOARD_TYPE_ESP_VOCAT || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_3_49 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_3_49_V2 || BOARD_TYPE_WAVESHARE_ESP32_S3_RLCD_4_2 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_1_85B || BOARD_TYPE_ZHENGCHEN_CAM || BOARD_TYPE_ZHENGCHEN_CAM_ML307 \
         || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_4_3C || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_LCD_1_54 || BOARD_TYPE_WAVESHARE_ESP32_S3_LCD_0_85 || BOARD_TYPE_AI_VOX3 || BOARD_TYPE_WAVESHARE_ESP32_S3_TOUCH_AMOLED_1_43C || BOARD_TYPE_ATK_DNESP32S3_BOX3)
     help
-        To work properly, device-side AEC requires a clean output reference path from the speaker signal and physical acoustic isolation between the microphone and speaker.
+        Для корректной работы AEC на устройстве нужен чистый опорный сигнал с динамика
+        и акустическая развязка динамика и микрофона.
+        Включить отладчик аудио: отправка аудиоданных по UDP на ПК
 
-config USE_SERVER_AEC
-    bool "Enable Server-Side AEC (Unstable)"
-    default n
-    depends on USE_AUDIO_PROCESSOR
+menu "Способ настройки Wi-Fi"
     help
-        To work perperly, server-side AEC requires server support
-
-config USE_AUDIO_DEBUGGER
-    bool "Enable Audio Debugger"
-    default n
-    help
-        Enable audio debugger, send audio data through UDP to the host machine
-
-menu "WiFi Configuration Method"
-    help
-        WiFi Configuration Method Selection
+        Выбор способа настройки Wi-Fi
     config USE_HOTSPOT_WIFI_PROVISIONING
-        bool "Hotspot"
+        bool "Точка доступа (Hotspot)"
         default y
         help
             Use WiFi Hotspot to transmit WiFi configuration data
@@ -991,137 +979,82 @@ menu "WiFi Configuration Method"
 endmenu
 
 config AUDIO_DEBUG_UDP_SERVER
-    string "Audio Debug UDP Server Address"
+    string "UDP-адрес сервера отладки аудио"
     default "192.168.2.100:8000"
     depends on USE_AUDIO_DEBUGGER
     help
-        UDP server address, format: IP:PORT, used to receive audio debugging data
+        Адрес UDP-сервера в формате IP:PORT для приёма отладочных аудиоданных
 
 config RECEIVE_CUSTOM_MESSAGE
-    bool "Enable Custom Message Reception"
+    bool "Приём пользовательских сообщений"
     default n
     help
-        Enable custom message reception, allow the device to receive custom messages from the server (preferably through the MQTT protocol)
+        Приём пользовательских сообщений с сервера (предпочтительно по MQTT)
 
-menu "Camera Configuration"
+menu "Настройка камеры"
     depends on !IDF_TARGET_ESP32
 
     comment "Warning: Please read the help text before modifying these settings."
 
     config XIAOZHI_CAMERA_MIRROR_CONFIGURED
-        bool "Override camera mirror settings"
+        bool "Переопределить зеркалирование камеры"
         default n
         help
-            When enabled, the common camera implementations apply the
-            horizontal and vertical mirror settings below after the sensor has
-            been initialized. Parameterized builds enable this automatically
-            when either mirror setting is configured.
+            Если включено, общие реализации камеры применяют зеркалирование
+            по горизонтали/вертикали после инициализации сенсора.
+            Параметризованные сборки включают это автоматически,
+            если задано любое зеркалирование.
 
     config XIAOZHI_CAMERA_HMIRROR
-        bool "Mirror Camera Horizontally"
+        bool "Зеркало по горизонтали"
         default n
         depends on XIAOZHI_CAMERA_MIRROR_CONFIGURED
         help
-            Flip the captured camera image across the vertical axis.
+            Отразить кадр камеры по вертикальной оси.
 
     config XIAOZHI_CAMERA_VFLIP
-        bool "Mirror Camera Vertically"
+        bool "Зеркало по вертикали"
         default n
         depends on XIAOZHI_CAMERA_MIRROR_CONFIGURED
         help
-            Flip the captured camera image across the horizontal axis.
+            Отразить кадр камеры по горизонтальной оси.
 
     config XIAOZHI_CAMERA_ALLOW_JPEG_INPUT
-        bool "Allow JPEG Input"
+        bool "Разрешить вход JPEG"
         default n
         help
-            Allow JPEG Input format for the camera.
+            Разрешить формат JPEG на входе камеры.
 
             This option may need to be enabled when using a USB camera.
 
             Not currently supported when used simultaneously with XIAOZHI_ENABLE_ROTATE_CAMERA_IMAGE.
 
     config XIAOZHI_ENABLE_HARDWARE_JPEG_ENCODER
-        bool "Enable Hardware JPEG Encoder"
+        bool "Аппаратный JPEG-кодировщик"
         default y
         depends on SOC_JPEG_ENCODE_SUPPORTED
         help
-            Use hardware JPEG encoder on ESP32-P4 to encode image to JPEG.
-            See https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/api-reference/peripherals/jpeg.html for more details.
-
-    config XIAOZHI_ENABLE_HARDWARE_JPEG_DECODER
-        bool "Enable Hardware JPEG Decoder"
-        default n
-        depends on SOC_JPEG_DECODE_SUPPORTED && XIAOZHI_CAMERA_ALLOW_JPEG_INPUT
-        help
-            Use hardware JPEG decoder on ESP32-P4 to decode JPEG to image.
-            See https://docs.espressif.com/projects/esp-idf/en/stable/esp32p4/api-reference/peripherals/jpeg.html for more details.
-
-    config XIAOZHI_ENABLE_CAMERA_DEBUG_MODE
-        bool "Enable Camera Debug Mode"
-        default n
-        help
-            Enable camera debug mode, print camera debug information to the console.
-            Only works on boards that support camera.
-
-    config XIAOZHI_ENABLE_CAMERA_ENDIANNESS_SWAP
-        bool "Enable software camera buffer endianness swapping"
-        default n
-        depends on !CAMERA_SENSOR_SWAP_PIXEL_BYTE_ORDER
-        help
-            This option treats the camera buffer as a uint16_t[] array and performs byte-swapping (endianness conversion) on each element.
-
-            Should only be modified by development board integration engineers.
-
-            **Incorrect usage may result in incorrect image colors!**
-
-            ATTENTION: If the option CAMERA_SENSOR_SWAP_PIXEL_BYTE_ORDER is available for your sensor, please use that instead.
-
-    menuconfig XIAOZHI_ENABLE_ROTATE_CAMERA_IMAGE
-        bool "Enable Camera Image Rotation"
-        default n
-        depends on !XIAOZHI_CAMERA_ALLOW_JPEG_INPUT
-        help
-            Enable camera image rotation, rotate the camera image to the correct orientation.
-            - On ESP32-P4, rotation is handled by PPA hardware.
-            - On other chips, rotation is done in software with performance cost.
-            - For 180° rotation, use HFlip + VFlip instead of this option.
-
-            Not currently supported when used simultaneously with XIAOZHI_CAMERA_ALLOW_JPEG_INPUT.
-
-    if XIAOZHI_ENABLE_ROTATE_CAMERA_IMAGE
-        choice XIAOZHI_CAMERA_IMAGE_ROTATION_ANGLE
-            prompt "Camera Image Rotation Angle (clockwise)"
-            default XIAOZHI_CAMERA_IMAGE_ROTATION_ANGLE_90
-            help
-                Camera image rotation angle.
-            config XIAOZHI_CAMERA_IMAGE_ROTATION_ANGLE_90
-                bool "90°"
-            config XIAOZHI_CAMERA_IMAGE_ROTATION_ANGLE_270
-                bool "270°"
-            comment "For 180° rotation, use HFlip + VFlip instead of this option"
-        endchoice
-    endif
+            Аппаратный JPEG-кодировщик ESP32-P4. См. документацию ESP-IDF по JPEG.
 endmenu
 
-menu "TAIJIPAI_S3_CONFIG"
+menu "Настройка Taiji-Pi-S3"
     depends on BOARD_TYPE_TAIJI_PI_S3
     choice I2S_TYPE_TAIJIPI_S3
-        prompt "taiji-pi-S3 I2S Type"
+        prompt "Тип I2S taiji-pi-S3"
         default TAIJIPAI_I2S_TYPE_STD
         help
-            I2S 类型选择
+            Выбор типа I2S
         config TAIJIPAI_I2S_TYPE_STD
-            bool "I2S Type STD"
+            bool "I2S STD"
         config TAIJIPAI_I2S_TYPE_PDM
-            bool "I2S Type PDM"
+            bool "I2S PDM"
     endchoice
 
     config I2S_USE_2SLOT
-    bool "Enable I2S 2 Slot"
+    bool "Включить I2S 2 Slot (стерео)"
     default y
     help
-        启动双声道
+        Включить стерео (два слота I2S)
 endmenu
 
 endmenu

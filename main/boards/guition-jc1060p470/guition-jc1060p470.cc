@@ -112,10 +112,25 @@ private:
         };
         ESP_ERROR_CHECK(esp_lcd_new_panel_io_dbi(dsi_bus_, &dbi_config, &panel_io));
 
-        /* DPI-конфиг 1024×600 @ 60 Гц, RGB565 — из драйвера JD9165 */
-        esp_lcd_dpi_panel_config_t dpi_config =
-            JD9165_1024_600_PANEL_60HZ_DPI_CONFIG(LCD_COLOR_PIXEL_FORMAT_RGB565);
+        /* DPI-конфиг 1024×600 @ 60 Гц, RGB565.
+         * Макрос JD9165_1024_600_PANEL_60HZ_DPI_CONFIG() на IDF 5.5 / C++
+         * падает с "either all initializer clauses should be designated"
+         * из-за .flags.use_dma2d. Задаём поля вручную (тайминги — как в
+         * компоненте esp_lcd_jd9165). */
+        esp_lcd_dpi_panel_config_t dpi_config = {};
+        dpi_config.virtual_channel = 0;
+        dpi_config.dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT;
+        dpi_config.dpi_clock_freq_mhz = 50;
+        dpi_config.pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB565;
         dpi_config.num_fbs = 1;
+        dpi_config.video_timing.h_size = 1024;
+        dpi_config.video_timing.v_size = 600;
+        dpi_config.video_timing.hsync_back_porch = 136;
+        dpi_config.video_timing.hsync_pulse_width = 20;
+        dpi_config.video_timing.hsync_front_porch = 160;
+        dpi_config.video_timing.vsync_back_porch = 12;
+        dpi_config.video_timing.vsync_pulse_width = 2;
+        dpi_config.video_timing.vsync_front_porch = 20;
 #if ESP_IDF_VERSION < ESP_IDF_VERSION_VAL(6, 0, 0)
         dpi_config.flags.use_dma2d = true;
 #endif

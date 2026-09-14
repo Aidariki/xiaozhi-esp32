@@ -160,6 +160,10 @@ private:
     }
 
     /* ---------- Тач GT911 ---------- */
+    /* Не используем ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG(): в IDF 5.5+
+     * порядок designator'ов макроса не совпадает с объявлением
+     * esp_lcd_panel_io_i2c_config_t (ошибка control_phase_bytes).
+     * Инициализируем поля вручную, scl_speed_hz — после структуры. */
     void InitializeTouch() {
         esp_lcd_touch_config_t touch_config = {
             .x_max = DISPLAY_WIDTH,
@@ -176,8 +180,17 @@ private:
                 .mirror_y = 0,
             },
         };
-        esp_lcd_panel_io_i2c_config_t touch_io_config = ESP_LCD_TOUCH_IO_I2C_GT911_CONFIG();
-        touch_io_config.scl_speed_hz = 400000;
+
+        esp_lcd_panel_io_i2c_config_t touch_io_config = {
+            .dev_addr = ESP_LCD_TOUCH_IO_I2C_GT911_ADDRESS,
+            .control_phase_bytes = 1,
+            .dc_bit_offset = 0,
+            .lcd_cmd_bits = 16,
+            .flags = {
+                .disable_control_phase = 1,
+            },
+        };
+        touch_io_config.scl_speed_hz = 400 * 1000;
 
         ESP_ERROR_CHECK(esp_lcd_new_panel_io_i2c(codec_i2c_bus_, &touch_io_config, &touch_io_));
         ESP_ERROR_CHECK(esp_lcd_touch_new_i2c_gt911(touch_io_, &touch_config, &tp_));

@@ -112,11 +112,9 @@ private:
         };
         ESP_ERROR_CHECK(esp_lcd_new_panel_io_dbi(dsi_bus_, &dbi_config, &panel_io));
 
-        /* DPI-конфиг 1024×600 @ 60 Гц, RGB565.
-         * Макрос JD9165_1024_600_PANEL_60HZ_DPI_CONFIG() на IDF 5.5 / C++
-         * падает с "either all initializer clauses should be designated"
-         * из-за .flags.use_dma2d. Задаём поля вручную (тайминги — как в
-         * компоненте esp_lcd_jd9165). */
+        /* DPI-конфиг 1024x600 @ 60 Гц, RGB565.
+         * Макрос JD9165 DPI_CONFIG на IDF 5.5/C++ падает на .flags.use_dma2d.
+         * Поля задаём вручную (тайминги из esp_lcd_jd9165). */
         esp_lcd_dpi_panel_config_t dpi_config = {};
         dpi_config.virtual_channel = 0;
         dpi_config.dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT;

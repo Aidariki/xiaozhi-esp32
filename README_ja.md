@@ -1,72 +1,72 @@
-# MCP ベースのチャットボット
+# Чат-бот на базе MCP
 
-（日本語 | [中文](README_zh.md) | [English](README.md)）
+(【японская версия】日本語 | [中文](README_zh.md) | [Русский](README.md) | [English](https://github.com/78/xiaozhi-esp32/blob/main/README.md))
 
-## はじめに
+## Введение
 
-👉 [人間：AIにカメラを装着 vs AI：その場で飼い主が3日間髪を洗っていないことを発見【bilibili】](https://www.bilibili.com/video/BV1bpjgzKEhd/)
+👉 [Человек: даёт ИИ камеру, а ИИ: тут же выяснил, что хозяин не мыл голову три дня【bilibili】](https://www.bilibili.com/video/BV1bpjgzKEhd/)
 
-👉 [手作りでAIガールフレンドを作る、初心者入門チュートリアル【bilibili】](https://www.bilibili.com/video/BV1XnmFYLEJN/)
+👉 [Создаём свою ИИ-девушку своими руками: вводный урок для новичков【bilibili】](https://www.bilibili.com/video/BV1XnmFYLEJN/)
 
-シャオジーAIチャットボットは音声インタラクションの入口として、Qwen / DeepSeekなどの大規模モデルのAI能力を活用し、MCPプロトコルを通じてマルチエンド制御を実現します。
+AI-чат-бот Сяо Чжи (XiaoZhi), будучи точкой голосового взаимодействия, использует возможности больших моделей, таких как Qwen / DeepSeek, и реализует управление множеством конечных устройств через протокол MCP.
 
-<img src="docs/mcp-based-graph.jpg" alt="MCPであらゆるものを制御" width="320">
+<img src="docs/mcp-based-graph.jpg" alt="Управление всем через MCP" width="320">
 
-## 最近の更新
+## Последние обновления
 
-- メインラインはESP-IDF v6.0以降へ移行し、推奨安定版はv6.0.2です。従来の157リリースバリアントはESP-IDF v6.0.1でビルド検証済みです。現在のマトリクスは171バリアントで、そのうち170はIDF 6.0.xに対応し、ESP32-S31バリアントにはIDF 6.1以降が必要です。
-- MQTTとBluFiの暗号処理をPSA Cryptoへ移行し、IDF 6のコンポーネント分割およびサードパーティ依存関係にも対応しました。
-- オーディオパイプラインの並行処理、MQTT/UDPパケット検証、リリースマトリクス選択処理を強化しました。
-- ESP-IDF v5.5は、文書で明記された旧式ボード向けにのみ残しています。ESP-SR 2.4.7を使用すると、ESP32-P4 Rev1とRev3の両方がIDF 6に対応します。詳細な互換性とボード検証状況は、[ESP-IDF 6.0移行ガイド](docs/esp-idf-6-migration.md)を参照してください。
+- Основная ветвь переведена на ESP-IDF v6.0 и новее; рекомендуемая стабильная версия — v6.0.2. Прежние 157 релизных вариантов были проверены сборкой на ESP-IDF v6.0.1. Текущая матрица содержит 171 вариант, из которых 170 поддерживают IDF 6.0.x, а для варианта ESP32-S31 требуется IDF 6.1 или новее.
+- Криптографические операции MQTT и BluFi перенесены на PSA Crypto; также выполнены работы по разделению компонентов в IDF 6 и совместимости сторонних зависимостей.
+- Усовершенствованы параллельность аудиоконвейера, проверка пакетов MQTT/UDP и логика выбора релизной матрицы.
+- ESP-IDF v5.5 сохранён только для старых плат, явно указанных в документации. При использовании ESP-SR 2.4.7 платы ESP32-P4 Rev1 и Rev3 поддерживаются на IDF 6. Подробную информацию о совместимости и статусе проверки плат см. в [Руководстве по миграции на ESP-IDF 6.0](docs/esp-idf-6-migration.md).
 
-### 実装済み機能
+### Реализованные функции
 
-- Wi-Fi、有線Ethernet、USB RNDIS、およびML307/EC801EまたはNT26 Cat.1 4Gに対応し、一部のボードではWi-Fiと4Gを切り替え可能
-- [ESP-SR](https://github.com/espressif/esp-sr)によるオフライン音声ウェイクアップとカスタムウェイクワード
-- 2種類の通信方式：[WebSocket](docs/websocket.md)と[MQTT + UDP](docs/mqtt-udp.md)
-- Opusオーディオストリーミングにより、従来のストリーミングASR + LLM + TTS構成とRealtimeエンドツーエンド音声モデルの両方に対応。AEC対応ハードウェアではリアルタイム全二重対話が可能
-- 話者認識、現在話している人を識別 [3D Speaker](https://github.com/modelscope/3D-Speaker)
-- OLED / LCDディスプレイで絵文字や豊かな感情表現を表示し、一部のボードではカメラによる視覚入力にも対応
-- バッテリー表示と電源管理
-- 38言語の画面表示に対応し、音声プロンプトはローカライズ済みリソースを優先して、未収録時は英語へフォールバック
-- ESP32、ESP32-C3、ESP32-C5、ESP32-C6、ESP32-S3、ESP32-P4チッププラットフォーム
-- ホットスポットまたはBluFiによるWi-Fiプロビジョニング
-- デバイス側MCPによるデバイス制御（音量・明るさ調整、アクション制御など）
-- クラウド側MCPで大規模モデル能力を拡張（スマートホーム制御、PCデスクトップ操作、知識検索、メール送受信など）
-- カスタマイズ可能なウェイクワード、フォント、絵文字、チャット背景、オンラインWeb編集に対応 ([カスタムアセットジェネレーター](https://github.com/78/xiaozhi-assets-generator))
+- Поддержка Wi-Fi, проводного Ethernet, USB RNDIS, а также 4G-сетей ML307/EC801E или NT26 Cat.1; на некоторых платах возможно переключение между Wi-Fi и 4G
+- Офлайн-голосовая активация средствами [ESP-SR](https://github.com/espressif/esp-sr) и пользовательские слова активации
+- Два способа связи: [WebSocket](docs/websocket.md) и [MQTT + UDP](docs/mqtt-udp.md)
+- Аудиопоток Opus поддерживает как традиционную схему «потоковые ASR + LLM + TTS», так и end-to-end realtime-голосовые модели; на оборудовании с AEC доступен realtime-диалог в полном дуплексе
+- Распознавание голоса: определяет, кто сейчас говорит [3D Speaker](https://github.com/modelscope/3D-Speaker)
+- Дисплеи OLED / LCD с отображением эмодзи и богатой эмоциональной выразительности; на некоторых платах поддерживается визуальный ввод с камеры
+- Отображение заряда аккумулятора и управление электропитанием
+- 38 языков интерфейса; голосовые подсказки используют локализованные ресурсы при их наличии, с откатом на английский
+- Платформы чипов ESP32, ESP32-C3, ESP32-C5, ESP32-C6, ESP32-S3, ESP32-P4
+- Настройка Wi-Fi через точку доступа или BluFi
+- Управление устройством через MCP на стороне устройства (громкость, яркость, выполнение действий и т. п.)
+- Расширение возможностей большой модели через облачный MCP (управление умным домом, операции на рабочем столе ПК, поиск знаний, отправка и получение почты и т. п.)
+- Настраиваемые слова активации, шрифты, эмодзи и фоны чата с онлайн-редактированием через веб-страницу ([Генератор пользовательских ресурсов](https://github.com/78/xiaozhi-assets-generator))
 
-## ハードウェア
+## Оборудование
 
-### ブレッドボード手作り実践
+### Сборка своими руками на макетной плате
 
-Feishuドキュメントチュートリアルをご覧ください：
+См. руководство в документе Feishu:
 
-👉 [「シャオジーAIチャットボット百科事典」](https://ccnphfhqs21z.feishu.cn/wiki/F5krwD16viZoF0kKkvDcrZNYnhb?from=from_copylink)
+👉 [«Энциклопедия AI-чат-бота Сяо Чжи»](https://ccnphfhqs21z.feishu.cn/wiki/F5krwD16viZoF0kKkvDcrZNYnhb?from=from_copylink)
 
-ブレッドボードのデモ：
+Демонстрация на макетной плате:
 
-![ブレッドボードデモ](docs/v1/wiring2.jpg)
+![Демонстрация на макетной плате](docs/v1/wiring2.jpg)
 
-### 138のボードディレクトリと171のリリースバリアントに対応（一部のみ表示）
+### Поддержка 138 каталогов плат и 171 релизного варианта (показана только часть)
 
-- <a href="https://oshwhub.com/li-chuang-kai-fa-ban/li-chuang-shi-zhan-pai-esp32-s3-kai-fa-ban" target="_blank" title="立創・実戦派 ESP32-S3 開発ボード">立創・実戦派 ESP32-S3 開発ボード</a>
-- <a href="https://github.com/espressif/esp-box" target="_blank" title="楽鑫 ESP32-S3-BOX-3">楽鑫 ESP32-S3-BOX-3</a>
+- <a href="https://oshwhub.com/li-chuang-kai-fa-ban/li-chuang-shi-zhan-pai-esp32-s3-kai-fa-ban" target="_blank" title="Плата разработки LiChuang ESP32-S3">Плата разработки LiChuang ESP32-S3</a>
+- <a href="https://github.com/espressif/esp-box" target="_blank" title="Espressif (乐鑫) ESP32-S3-BOX-3">Espressif ESP32-S3-BOX-3</a>
 - <a href="https://docs.m5stack.com/zh_CN/core/CoreS3" target="_blank" title="M5Stack CoreS3">M5Stack CoreS3</a>
 - <a href="https://docs.m5stack.com/en/atom/Atomic%20Echo%20Base" target="_blank" title="AtomS3R + Echo Base">M5Stack AtomS3R + Echo Base</a>
-- <a href="https://gf.bilibili.com/item/detail/1108782064" target="_blank" title="マジックボタン2.4">マジックボタン2.4</a>
-- <a href="https://www.waveshare.net/shop/ESP32-S3-Touch-AMOLED-1.8.htm" target="_blank" title="微雪電子 ESP32-S3-Touch-AMOLED-1.8">微雪電子 ESP32-S3-Touch-AMOLED-1.8</a>
+- <a href="https://gf.bilibili.com/item/detail/1108782064" target="_blank" title="Волшебная кнопка 2.4">Волшебная кнопка 2.4</a>
+- <a href="https://www.waveshare.net/shop/ESP32-S3-Touch-AMOLED-1.8.htm" target="_blank" title="Waveshare (微雪电子) ESP32-S3-Touch-AMOLED-1.8">Waveshare ESP32-S3-Touch-AMOLED-1.8</a>
 - <a href="https://github.com/Xinyuan-LilyGO/T-Circle-S3" target="_blank" title="LILYGO T-Circle-S3">LILYGO T-Circle-S3</a>
-- <a href="https://oshwhub.com/tenclass01/xmini_c3" target="_blank" title="エビ兄さん Mini C3">エビ兄さん Mini C3</a>
-- <a href="https://oshwhub.com/movecall/cuican-ai-pendant-lights-up-y" target="_blank" title="Movecall CuiCan ESP32S3">CuiCan AIペンダント</a>
-- <a href="https://github.com/WMnologo/xingzhi-ai" target="_blank" title="無名科技Nologo-星智-1.54">無名科技Nologo-星智-1.54TFT</a>
+- <a href="https://oshwhub.com/tenclass01/xmini_c3" target="_blank" title="Mini C3 от сяо Гэ (брата-креветки)">Mini C3 от сяо Гэ</a>
+- <a href="https://oshwhub.com/movecall/cuican-ai-pendant-lights-up-y" target="_blank" title="Movecall CuiCan ESP32S3">ИИ-кулон CuiCan</a>
+- <a href="https://github.com/WMnologo/xingzhi-ai" target="_blank" title="WMnologo Xingzhi (безымянная технология, «Звёздный разум») — 1.54">WMnologo Xingzhi-1.54TFT</a>
 - <a href="https://www.seeedstudio.com/SenseCAP-Watcher-W1-A-p-5979.html" target="_blank" title="SenseCAP Watcher">SenseCAP Watcher</a>
-- <a href="https://www.bilibili.com/video/BV1BHJtz6E2S/" target="_blank" title="ESP-HI 超低コストロボット犬">ESP-HI 超低コストロボット犬</a>
+- <a href="https://www.bilibili.com/video/BV1BHJtz6E2S/" target="_blank" title="Сверхбюджетный робот-пёс ESP-HI">Сверхбюджетный робот-пёс ESP-HI</a>
 
 <div style="display: flex; justify-content: space-between;">
-  <a href="docs/v1/lichuang-s3.jpg" target="_blank" title="立創・実戦派 ESP32-S3 開発ボード">
+  <a href="docs/v1/lichuang-s3.jpg" target="_blank" title="Плата разработки LiChuang ESP32-S3">
     <img src="docs/v1/lichuang-s3.jpg" width="240" />
   </a>
-  <a href="docs/v1/espbox3.jpg" target="_blank" title="楽鑫 ESP32-S3-BOX3">
+  <a href="docs/v1/espbox3.jpg" target="_blank" title="Espressif ESP32-S3-BOX3">
     <img src="docs/v1/espbox3.jpg" width="240" />
   </a>
   <a href="docs/v1/m5cores3.jpg" target="_blank" title="M5Stack CoreS3">
@@ -75,95 +75,95 @@ Feishuドキュメントチュートリアルをご覧ください：
   <a href="docs/v1/atoms3r.jpg" target="_blank" title="AtomS3R + Echo Base">
     <img src="docs/v1/atoms3r.jpg" width="240" />
   </a>
-  <a href="docs/v1/magiclick.jpg" target="_blank" title="マジックボタン2.4">
+  <a href="docs/v1/magiclick.jpg" target="_blank" title="Волшебная кнопка 2.4">
     <img src="docs/v1/magiclick.jpg" width="240" />
   </a>
-  <a href="docs/v1/waveshare.jpg" target="_blank" title="微雪電子 ESP32-S3-Touch-AMOLED-1.8">
+  <a href="docs/v1/waveshare.jpg" target="_blank" title="Waveshare ESP32-S3-Touch-AMOLED-1.8">
     <img src="docs/v1/waveshare.jpg" width="240" />
   </a>
   <a href="docs/v1/lilygo-t-circle-s3.jpg" target="_blank" title="LILYGO T-Circle-S3">
     <img src="docs/v1/lilygo-t-circle-s3.jpg" width="240" />
   </a>
-  <a href="docs/v1/xmini-c3.jpg" target="_blank" title="エビ兄さん Mini C3">
+  <a href="docs/v1/xmini-c3.jpg" target="_blank" title="Mini C3 от сяо Гэ">
     <img src="docs/v1/xmini-c3.jpg" width="240" />
   </a>
   <a href="docs/v1/movecall-cuican-esp32s3.jpg" target="_blank" title="CuiCan">
     <img src="docs/v1/movecall-cuican-esp32s3.jpg" width="240" />
   </a>
-  <a href="docs/v1/wmnologo_xingzhi_1.54.jpg" target="_blank" title="無名科技Nologo-星智-1.54">
+  <a href="docs/v1/wmnologo_xingzhi_1.54.jpg" target="_blank" title="WMnologo Xingzhi-1.54">
     <img src="docs/v1/wmnologo_xingzhi_1.54.jpg" width="240" />
   </a>
   <a href="docs/v1/sensecap_watcher.jpg" target="_blank" title="SenseCAP Watcher">
     <img src="docs/v1/sensecap_watcher.jpg" width="240" />
   </a>
-  <a href="docs/v1/esp-hi.jpg" target="_blank" title="ESP-HI 超低コストロボット犬">
+  <a href="docs/v1/esp-hi.jpg" target="_blank" title="Сверхбюджетный робот-пёс ESP-HI">
     <img src="docs/v1/esp-hi.jpg" width="240" />
   </a>
 </div>
 
-## ソフトウェア
+## Программное обеспечение
 
-### ファームウェア書き込み
+### Прошивка firmware
 
-初心者の方は、まず開発環境を構築せずに書き込み可能なファームウェアを使用することをおすすめします。
+Новичкам рекомендуется сначала использовать прошивку, которую можно записать без развёртывания среды разработки.
 
-ファームウェアはデフォルトで公式 [xiaozhi.me](https://xiaozhi.me) サーバーに接続します。個人ユーザーはアカウント登録でQwenリアルタイムモデルを無料で利用できます。
+По умолчанию прошивка подключается к официальному серверу [xiaozhi.me](https://xiaozhi.me). Частные пользователи, зарегистрировав аккаунт, могут бесплатно использовать realtime-модель Qwen.
 
-👉 [初心者向けファームウェア書き込みガイド](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS)
+👉 [Руководство по прошивке для новичков](https://ccnphfhqs21z.feishu.cn/wiki/Zpz4wXBtdimBrLk25WdcXzxcnNS)
 
-### 開発環境
+### Среда разработки
 
-- Cursor または VSCode
-- ESP-IDFプラグインをインストールし、[ESP-IDF v6.0.2](https://github.com/espressif/esp-idf/releases/tag/v6.0.2)を優先して使用してください。v6.0以降の安定版を推奨し、ESP-IDF v5.5.2は旧ハードウェアとの互換性維持にのみ使用します
-- LinuxはWindowsよりも優れており、コンパイルが速く、ドライバの問題も少ない
-- 本プロジェクトはGoogle C++コードスタイルを採用、コード提出時は準拠を確認してください
+- Cursor или VSCode
+- Установите плагин ESP-IDF; рекомендуется [ESP-IDF v6.0.2](https://github.com/espressif/esp-idf/releases/tag/v6.0.2). Предпочтение отдаётся стабильным выпускам v6.0 и новее; ESP-IDF v5.5.2 используется только для сохранения совместимости со старым оборудованием
+- Linux предпочтительнее Windows: компиляция быстрее и меньше проблем с драйверами
+- В проекте принят стиль кода C++ от Google; при отправке кода убедитесь в его соблюдении
 
-### 開発者ドキュメント
+### Документация для разработчиков
 
-- [ESP-IDF 6.0移行ガイド](docs/esp-idf-6-migration.md) - SDK互換性、コンポーネント変更、旧ハードウェア対応、ボード検証状況
-- [カスタム開発ボードガイド](docs/custom-board.md) - シャオジーAI用のカスタム開発ボード作成方法
-- [MCPプロトコルIoT制御使用法](docs/mcp-usage.md) - MCPプロトコルでIoTデバイスを制御する方法
-- [MCPプロトコルインタラクションフロー](docs/mcp-protocol.md) - デバイス側MCPプロトコルの実装方法
-- [MQTT + UDP ハイブリッド通信プロトコルドキュメント](docs/mqtt-udp.md)
-- [詳細なWebSocket通信プロトコルドキュメント](docs/websocket.md)
+- [Руководство по миграции на ESP-IDF 6.0](docs/esp-idf-6-migration.md) — совместимость SDK, изменения компонентов, поддержка старого оборудования и статус проверки плат
+- [Руководство по пользовательской плате](docs/custom-board.md) — как создать собственную плату для Сяо Чжи AI
+- [Использование MCP для управления IoT](docs/mcp-usage.md) — как управлять IoT-устройствами по протоколу MCP
+- [Обмен данными по протоколу MCP](docs/mcp-protocol.md) — реализация протокола MCP на стороне устройства
+- [Документ по гибридному протоколу связи MQTT + UDP](docs/mqtt-udp.md)
+- [Подробный документ по протоколу связи WebSocket](docs/websocket.md)
 
-## 大規模モデル設定
+## Настройка больших моделей
 
-すでにシャオジーAIチャットボットデバイスをお持ちで、公式サーバーに接続済みの場合は、[xiaozhi.me](https://xiaozhi.me) コンソールで設定できます。
+Если у вас уже есть устройство AI-чат-бота Сяо Чжи, подключённое к официальному серверу, вы можете выполнить настройку в консоли [xiaozhi.me](https://xiaozhi.me).
 
-👉 [バックエンド操作ビデオチュートリアル（旧インターフェース）](https://www.bilibili.com/video/BV1jUCUY2EKM/)
+👉 [Видеоруководство по работе с бэкендом (старый интерфейс)](https://www.bilibili.com/video/BV1jUCUY2EKM/)
 
-## 関連オープンソースプロジェクト
+## Связанные open-source проекты
 
-個人PCでサーバーをデプロイする場合は、以下のオープンソースプロジェクトを参照してください：
+Для развёртывания сервера на личном компьютере обратитесь к следующим проектам с открытым исходным кодом:
 
-- [xinnan-tech/xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) Pythonサーバー
-- [joey-zhou/xiaozhi-esp32-server-java](https://github.com/joey-zhou/xiaozhi-esp32-server-java) Javaサーバー
-- [AnimeAIChat/xiaozhi-server-go](https://github.com/AnimeAIChat/xiaozhi-server-go) Golangサーバー
-- [hackers365/xiaozhi-esp32-server-golang](https://github.com/hackers365/xiaozhi-esp32-server-golang) Golangサーバー
+- [xinnan-tech/xiaozhi-esp32-server](https://github.com/xinnan-tech/xiaozhi-esp32-server) сервер на Python
+- [joey-zhou/xiaozhi-esp32-server-java](https://github.com/joey-zhou/xiaozhi-esp32-server-java) сервер на Java
+- [AnimeAIChat/xiaozhi-server-go](https://github.com/AnimeAIChat/xiaozhi-server-go) сервер на Golang
+- [hackers365/xiaozhi-esp32-server-golang](https://github.com/hackers365/xiaozhi-esp32-server-golang) сервер на Golang
 
-シャオジー通信プロトコルを利用した他のクライアントプロジェクト：
+Другие клиентские проекты, использующие протокол связи Сяо Чжи:
 
-- [huangjunsen0406/py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) Pythonクライアント
-- [TOM88812/xiaozhi-android-client](https://github.com/TOM88812/xiaozhi-android-client) Androidクライアント
-- [100askTeam/xiaozhi-linux](http://github.com/100askTeam/xiaozhi-linux) 百問科技提供のLinuxクライアント
-- [78/xiaozhi-sf32](https://github.com/78/xiaozhi-sf32) 思澈科技のBluetoothチップファームウェア
-- [QuecPython/solution-xiaozhiAI](https://github.com/QuecPython/solution-xiaozhiAI) 移遠提供のQuecPythonファームウェア
+- [huangjunsen0406/py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) клиент на Python
+- [TOM88812/xiaozhi-android-client](https://github.com/TOM88812/xiaozhi-android-client) клиент на Android
+- [100askTeam/xiaozhi-linux](http://github.com/100askTeam/xiaozhi-linux) клиент для Linux от «Бай Вэнь Кэцзи» (100ask)
+- [78/xiaozhi-sf32](https://github.com/78/xiaozhi-sf32) прошивка Bluetooth-чипа от SiChuan (思澈科技)
+- [QuecPython/solution-xiaozhiAI](https://github.com/QuecPython/solution-xiaozhiAI) прошивка QuecPython от Quectel (移遠)
 
-## プロジェクトについて
+## О проекте
 
-これはエビ兄さんがオープンソースで公開しているESP32プロジェクトで、MITライセンスのもと、誰でも無料で、商用利用も可能です。
+Это ESP32-проект с открытым исходным кодом, опубликованный под лицензией MIT: любой может использовать его бесплатно, в том числе в коммерческих целях.
 
-このプロジェクトを通じて、AIハードウェア開発を理解し、急速に進化する大規模言語モデルを実際のハードウェアデバイスに応用できるようになることを目指しています。
+Мы надеемся, что благодаря этому проекту все смогут разобраться в разработке ИИ-оборудования и применить быстро развивающиеся большие языковые модели к реальным устройствам.
 
-ご意見やご提案があれば、いつでもIssueを提出するか、[Discord](https://discord.gg/C759fGMBcZ) または QQグループ：1011329060 にご参加ください。
+Если у вас есть замечания или предложения, пожалуйста, создавайте Issue или присоединяйтесь к нашему [Discord](https://discord.gg/C759fGMBcZ) либо группе QQ: 1011329060.
 
-## スター履歴
+## История звёзд
 
 <a href="https://star-history.com/#78/xiaozhi-esp32&Date">
  <picture>
    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date&theme=dark" />
    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
-   <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
+   <img alt="График истории звёзд" src="https://api.star-history.com/svg?repos=78/xiaozhi-esp32&type=Date" />
  </picture>
-</a> 
+</a>

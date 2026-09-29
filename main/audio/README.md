@@ -1,72 +1,56 @@
-# Audio Service Architecture
+# Архитектура аудиосервиса
 
-`AudioService` owns one input engine and keeps codec I/O, Opus encoding/decoding,
-and network queues independent from the chip-specific speech pipeline.
+`AudioService` владеет одним входным движком и удерживает ввод-вывод кодека, кодирование/декодирование Opus и сетевые очереди независимыми от зависящего от конкретного чипа конвейера обработки речи.
 
-## Input engines
+## Входные движки
 
-The old `AudioProcessor + WakeWord` combinations have been replaced by a single
-`AudioEngine` interface. `AudioInputTask` reads PCM once and feeds exactly one
-engine.
+Прежние комбинации `AudioProcessor + WakeWord` заменены единым интерфейсом `AudioEngine`. `AudioInputTask` однократно читает PCM и передаёт данные ровно одному движку.
 
-| Target | Engine | Wake word | Uplink processing |
+| Цель | Движок | Слово активации | Обработка восходящего потока |
 | --- | --- | --- | --- |
-| ESP32-S3 / ESP32-P4 / ESP32-S31 | `AfeAudioEngine` | WakeNet inside AFE, or MultiNet fed from AFE output | FD AEC + VAD when audio processing is enabled |
-| ESP32 / ESP32-C3 / ESP32-C5 / ESP32-C6 | `LiteAudioEngine` | Standalone WakeNet when configured | Raw mono PCM |
+| ESP32-S3 / ESP32-P4 / ESP32-S31 | `AfeAudioEngine` | WakeNet внутри AFE либо MultiNet, питаемая выходом AFE | FD AEC + VAD при включённой обработке аудио |
+| ESP32 / ESP32-C3 / ESP32-C5 / ESP32-C6 | `LiteAudioEngine` | Автономный WakeNet, если настроен | Сырой монофонический PCM |
 
-`AfeAudioEngine` owns a single FD AFE instance. WakeNet and voice uplink share
-that instance, so enabling both no longer creates two AFE pipelines. For custom
-MultiNet wake words, AFE fetch output is passed to `CustomWakeWord`; MultiNet is
-not created on the smaller targets.
+`AfeAudioEngine` владеет единственным экземпляром FD AFE. WakeNet и голосовой восходящий поток разделяют этот экземпляр, поэтому одновременное включение обоих больше не создаёт два конвейера AFE. Для пользовательских слов активации MultiNet выход выборки (fetch) AFE передаётся в `CustomWakeWord`; на более слабых целевых чипах MultiNet не создаётся.
 
-The AFE configuration currently uses `FD_LOW_COST` AEC with
-`AEC_NLP_LEVEL_VERYAGGR`. WebRTC/NSNet noise suppression is intentionally
-disabled because the project does not ship an NSNet model.
+Конфигурация AFE в настоящее время использует FD AEC в режиме `FD_LOW_COST` с `AEC_NLP_LEVEL_VERYAGGR`. Шумоподавление WebRTC/NSNet намеренно отключено, поскольку проект не поставляет модель NSNet.
 
-When wake-word audio upload is enabled, the most recent two seconds of PCM are
-stored in a single 64 KB PSRAM ring buffer. WakeNet and MultiNet share the same
-cache implementation, and the encoder reads it one Opus frame at a time. This
-avoids the previous per-chunk internal-SRAM allocations and temporary PCM
-concatenation buffer.
+Когда включена загрузка аудио слова активации, последние две секунды PCM хранятся в одном 64 КБ кольцевом буфере PSRAM. WakeNet и MultiNet разделяют одну реализацию кэша, а энкодер читает его по одному кадру Opus за раз. Это позволяет избежать прежних выделений внутренней SRAM на каждый фрагмент и временного буфера конкатенации PCM.
 
-## Input data flow
+## Поток входных данных
 
 ```mermaid
 flowchart LR
-    Mic[Microphone] --> Codec[AudioCodec]
+    Mic[Микрофон] --> Codec[Аудиокодек]
     Codec --> Input[AudioInputTask]
-    Input --> Engine[One AudioEngine]
-    Engine --> Wake[Wake-word event]
-    Engine --> PCM[16 kHz mono PCM]
+    Input --> Engine[Один AudioEngine]
+    Engine --> Wake[Событие слова активации]
+    Engine --> PCM[Моно PCM 16 кГц]
     PCM --> EncodeQueue[audio_encode_queue_]
     EncodeQueue --> Opus[OpusCodecTask]
     Opus --> SendQueue[audio_send_queue_]
-    SendQueue --> App[Application / network]
+    SendQueue --> App[Application / сеть]
 ```
 
-Wake-word detection and voice processing are independent runtime states on the
-same engine. On AFE targets, AEC stays active while wake-word detection is active
-so playback reference remains available for wake-up during device playback. It
-also stays active during voice processing when device AEC is requested.
+Обнаружение слова активации и обработка речи — независимые состояния выполнения одного и того же движка. На целях с AFE AEC остаётся активным, пока активно обнаружение слова активации, чтобы эталон воспроизведения был доступен для активации во время воспроизведения устройством звука. Он также остаётся активным во время обработки речи, когда запрошен AEC на стороне устройства.
 
-## Output data flow
+## Поток выходных данных
 
 ```mermaid
 flowchart LR
-    App[Application / network] --> DecodeQueue[audio_decode_queue_]
+    App[Application / сеть] --> DecodeQueue[audio_decode_queue_]
     DecodeQueue --> Opus[OpusCodecTask]
     Opus --> PlaybackQueue[audio_playback_queue_]
     PlaybackQueue --> Output[AudioOutputTask]
-    Output --> Codec[AudioCodec]
-    Codec --> Speaker[Speaker]
+    Output --> Codec[Аудиокодек]
+    Codec --> Speaker[Динамик]
 ```
 
-## Tasks and power management
+## Задачи и управление электропитанием
 
-- `AudioInputTask` reads codec input and feeds the selected engine.
-- `AudioOutputTask` drains decoded PCM to the codec output.
-- `OpusCodecTask` encodes uplink PCM and decodes downlink packets.
-- `AfeAudioEngine` has its own AFE fetch task on S3/P4/S31.
+- `AudioInputTask` читает вход кодека и передаёт данные выбранному движку.
+- `AudioOutputTask` выгружает декодированный PCM на выход кодека.
+- `OpusCodecTask` кодирует восходящий PCM и декодирует нисходящие пакеты.
+- `AfeAudioEngine` имеет собственную задачу fetch AFE на S3/P4/S31.
 
-The audio power timer still enables and disables codec ADC/DAC channels based on
-activity; the engine refactor does not change that policy.
+Таймер управления питанием аудио по-прежнему включает и отключает каналы АЦП/ЦАП кодека на основе активности; рефакторинг движков эту политику не меняет.

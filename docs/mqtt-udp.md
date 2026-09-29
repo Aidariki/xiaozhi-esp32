@@ -1,77 +1,77 @@
-# MQTT + UDP Hybrid Communication Protocol
+# Гибридный протокол связи MQTT + UDP
 
-This document describes the MQTT + UDP hybrid protocol used between the device and the server, based on the current implementation: MQTT carries control messages, UDP carries real-time audio.
-
----
-
-## 1. Overview
-
-The protocol uses two channels:
-
-- **MQTT** - control messages, state synchronization, JSON payloads.
-- **UDP** - real-time audio, encrypted.
-
-### 1.1 Key characteristics
-
-- **Dual channel design** - control is separated from data so audio has low latency.
-- **Encrypted transport** - UDP audio is encrypted with AES-CTR.
-- **Sequence numbers** - guard against replay and reordering.
-- **Automatic reconnect** - MQTT reconnects on disconnect.
+В этом документе описан гибридный протокол MQTT + UDP, используемый между устройством и сервером, на основе текущей реализации: MQTT передаёт управляющие сообщения, UDP — аудио в реальном времени.
 
 ---
 
-## 2. End-to-end Flow
+## 1. Обзор
+
+Протокол использует два канала:
+
+- **MQTT** — управляющие сообщения, синхронизация состояния, JSON-полезные нагрузки.
+- **UDP** — аудио в реальном времени, шифрованное.
+
+### 1.1 Ключевые особенности
+
+- **Двухканальная конструкция** — управление отделено от данных, поэтому у аудио низкая задержка.
+- **Шифрованная передача** — аудио по UDP шифруется AES-CTR.
+- **Номера последовательности** — защита от повтора (replay) и перестановки.
+- **Автоматическое переподключение** — MQTT переподключается при разрыве.
+
+---
+
+## 2. Сквозной поток
 
 ```mermaid
 sequenceDiagram
-    participant Device as ESP32 device
-    participant MQTT as MQTT broker
-    participant UDP as UDP server
+    participant Device as Устройство ESP32
+    participant MQTT as Брокер MQTT
+    participant UDP as UDP-сервер
 
-    Note over Device, UDP: 1. Establish MQTT connection
-    Device->>MQTT: MQTT Connect
-    MQTT->>Device: Connected
+    Note over Device, UDP: 1. Установление соединения MQTT
+    Device->>MQTT: Подключение MQTT
+    MQTT->>Device: Подключено
 
-    Note over Device, UDP: 2. Request audio channel
-    Device->>MQTT: Hello message (type: "hello", transport: "udp")
-    MQTT->>Device: Hello response (UDP endpoint + encryption keys)
+    Note over Device, UDP: 2. Запрос аудиоканала
+    Device->>MQTT: Hello-сообщение (type: "hello", transport: "udp")
+    MQTT->>Device: Ответ Hello (эндпоинт UDP + ключи шифрования)
 
-    Note over Device, UDP: 3. Establish UDP connection
-    Device->>UDP: UDP Connect
-    UDP->>Device: Connected
+    Note over Device, UDP: 3. Установление соединения UDP
+    Device->>UDP: Подключение UDP
+    UDP->>Device: Подключено
 
-    Note over Device, UDP: 4. Audio streaming
-    loop Audio stream
-        Device->>UDP: Encrypted audio (Opus)
-        UDP->>Device: Encrypted audio (Opus)
+    Note over Device, UDP: 4. Аудиовещание
+    loop Аудиопоток
+        Device->>UDP: Шифрованное аудио (Opus)
+        UDP->>Device: Шифрованное аудио (Opus)
     end
 
-    Note over Device, UDP: 5. Control messages
-    par Control
-        Device->>MQTT: Listen / TTS / MCP messages
-        MQTT->>Device: STT / TTS / MCP / Alert responses
+    Note over Device, UDP: 5. Управляющие сообщения
+    par Управление
+        Device->>MQTT: Сообщения Listen / TTS / MCP
+        MQTT->>Device: Ответы STT / TTS / MCP / Alert
     end
 
-    Note over Device, UDP: 6. Teardown
+    Note over Device, UDP: 6. Завершение
     Device->>MQTT: Goodbye
-    Device->>UDP: Disconnect
+    Device->>UDP: Отключение
 ```
 
 ---
 
-## 3. MQTT Control Channel
+## 3. Управляющий канал MQTT
 
-### 3.1 Connection
+### 3.1 Подключение
 
-The device connects to the broker using:
-- **Endpoint** - broker host and port.
-- **Client ID** - device identifier.
-- **Username / Password** - credentials.
-- **Keep Alive** - heartbeat interval (default 240 s).
+Устройство подключается к брокеру, используя:
+- **Эндпоинт** — хост и порт брокера.
+- **Client ID** — идентификатор устройства.
+- **Имя пользователя / пароль** — учётные данные.
+- **Keep Alive** — интервал heartbeat (по умолчанию 240 с).
 
-### 3.2 Hello exchange
+### 3.2 Обмен Hello
 
-#### 3.2.1 Device -> Server
+#### 3.2.1 Устройство -> Сервер
 
 ```json
 {
@@ -98,11 +98,10 @@ The device connects to the broker using:
 }
 ```
 
-`features.mcp` is always set; `features.aec` is set when `CONFIG_USE_SERVER_AEC` is enabled.
-`features.glyph_push` and `text_font` advertise the shared dynamic text-glyph extension described in
-[Dynamic Text Glyph Push Extension](glyph-push.md).
+`features.mcp` устанавливается всегда; `features.aec` устанавливается при включённом `CONFIG_USE_SERVER_AEC`.
+`features.glyph_push` и `text_font` объявляют общее расширение динамической передачи текстовых глифов, описанное в разделе [Расширение динамической передачи глифов текста](glyph-push.md).
 
-#### 3.2.2 Server -> Device
+#### 3.2.2 Сервер -> Устройство
 
 ```json
 {
@@ -124,15 +123,15 @@ The device connects to the broker using:
 }
 ```
 
-Field reference:
-- `udp.server` - UDP server address.
-- `udp.port` - UDP server port.
-- `udp.key` - AES key, hex-encoded.
-- `udp.nonce` - AES nonce, hex-encoded.
+Справочник полей:
+- `udp.server` — адрес UDP-сервера.
+- `udp.port` — порт UDP-сервера.
+- `udp.key` — ключ AES в hex-кодировании.
+- `udp.nonce` — nonce AES в hex-кодировании.
 
-### 3.3 JSON message types
+### 3.3 Типы JSON-сообщений
 
-#### 3.3.1 Device -> Server
+#### 3.3.1 Устройство -> Сервер
 
 1. **Listen**
    ```json
@@ -174,19 +173,19 @@ Field reference:
    }
    ```
 
-#### 3.3.2 Server -> Device
+#### 3.3.2 Сервер -> Устройство
 
-Semantics match the WebSocket protocol. Supported types:
-- **STT** - speech recognition result.
-- **TTS** - TTS lifecycle (`start`, `stop`, `sentence_start`).
-- **LLM** - emotion update for the UI.
-- **MCP** - IoT control.
-- **System** - system control, e.g. `"command": "reboot"`.
-- **Alert** - show an alert on the UI; fields: `status`, `message`, `emotion`.
-- **Goodbye** - server-initiated shutdown of the audio session. The device responds by closing the UDP channel without sending its own goodbye.
-- **Custom** (optional, enabled via `CONFIG_RECEIVE_CUSTOM_MESSAGE`).
+Семантика совпадает с протоколом WebSocket. Поддерживаемые типы:
+- **STT** — результат распознавания речи.
+- **TTS** — жизненный цикл TTS (`start`, `stop`, `sentence_start`).
+- **LLM** — обновление эмоции для UI.
+- **MCP** — управление IoT.
+- **System** — системное управление, например `"command": "reboot"`.
+- **Alert** — показать предупреждение в UI; поля: `status`, `message`, `emotion`.
+- **Goodbye** — инициируемое сервером завершение аудиосессии. Устройство в ответ закрывает UDP-канал, не отправляя собственный goodbye.
+- **Custom** (необязательно, включается через `CONFIG_RECEIVE_CUSTOM_MESSAGE`).
 
-Example alert:
+Пример alert:
 ```json
 {
   "session_id": "xxx",
@@ -199,59 +198,59 @@ Example alert:
 
 ---
 
-## 4. UDP Audio Channel
+## 4. Аудиоканал UDP
 
-### 4.1 Establishing the channel
+### 4.1 Установление канала
 
-After the device receives the MQTT hello response, it:
-1. Parses the UDP host and port.
-2. Parses the AES key and nonce.
-3. Initializes the AES-CTR context.
-4. Opens the UDP socket.
+После получения hello-ответа MQTT устройство:
+1. Разбирает хост и порт UDP.
+2. Разбирает ключ AES и nonce.
+3. Инициализирует контекст AES-CTR.
+4. Открывает UDP-сокет.
 
-### 4.2 Audio packet format
+### 4.2 Формат аудиопакета
 
-#### 4.2.1 Encrypted audio packet
+#### 4.2.1 Шифрованный аудиопакет
 
 ```
 |type 1B|flags 1B|payload_len 2B|ssrc 4B|timestamp 4B|sequence 4B|
 |payload payload_len bytes|
 ```
 
-Field reference:
-- `type`: packet type, always `0x01`.
-- `flags`: flags, currently unused.
-- `payload_len`: payload length (network byte order).
-- `ssrc`: synchronization source identifier.
-- `timestamp`: timestamp (network byte order).
-- `sequence`: sequence number (network byte order).
-- `payload`: encrypted Opus audio data.
+Справочник полей:
+- `type`: тип пакета, всегда `0x01`.
+- `flags`: флаги, в настоящее время не используются.
+- `payload_len`: длина полезной нагрузки (сетевой порядок байтов).
+- `ssrc`: идентификатор синхронного источника.
+- `timestamp`: метка времени (сетевой порядок байтов).
+- `sequence`: номер последовательности (сетевой порядок байтов).
+- `payload`: зашифрованные аудиоданные Opus.
 
-#### 4.2.2 Encryption
+#### 4.2.2 Шифрование
 
-Uses **AES-CTR** with:
-- **Key**: 128-bit, provided by the server.
-- **Nonce**: 128-bit, provided by the server.
-- **Counter**: built from the timestamp and sequence number.
+Используется **AES-CTR** со следующими параметрами:
+- **Ключ**: 128 бит, предоставляется сервером.
+- **Nonce**: 128 бит, предоставляется сервером.
+- **Счётчик**: формируется из метки времени и номера последовательности.
 
-### 4.3 Sequence number management
+### 4.3 Управление номерами последовательности
 
-- **Sender**: `local_sequence_` is incremented monotonically.
-- **Receiver**: `remote_sequence_` validates continuity.
-- **Anti-replay**: packets with sequence numbers below the expected value are dropped.
-- **Tolerance**: small gaps are logged as warnings but still accepted.
+- **Отправитель**: `local_sequence_` монотонно увеличивается.
+- **Получатель**: `remote_sequence_` проверяет непрерывность.
+- **Защита от повтора**: пакеты с номерами последовательности ниже ожидаемого отбрасываются.
+- **Допуск**: небольшие пропуски логируются как предупреждения, но всё равно принимаются.
 
-### 4.4 Error handling
+### 4.4 Обработка ошибок
 
-1. **Decryption failure** - log an error and drop the packet.
-2. **Sequence gap** - log a warning, continue processing the packet.
-3. **Malformed packet** - log an error and drop.
+1. **Ошибка расшифровки** — записать ошибку в журнал и отбросить пакет.
+2. **Пропуск в последовательности** — записать предупреждение, продолжить обработку пакета.
+3. **Некорректный пакет** — записать ошибку в журнал и отбросить.
 
 ---
 
-## 5. State Management
+## 5. Управление состоянием
 
-### 5.1 Connection state
+### 5.1 Состояние соединения
 
 ```mermaid
 stateDiagram
@@ -259,21 +258,21 @@ stateDiagram
     [*] --> Disconnected
     Disconnected --> MqttConnecting: StartMqttClient()
     MqttConnecting --> MqttConnected: MQTT Connected
-    MqttConnecting --> Disconnected: Connect failed
+    MqttConnecting --> Disconnected: Ошибка подключения
     MqttConnected --> RequestingChannel: OpenAudioChannel()
-    RequestingChannel --> ChannelOpened: Hello exchange success
-    RequestingChannel --> MqttConnected: Hello timeout / failed
-    ChannelOpened --> UdpConnected: UDP connect success
-    UdpConnected --> AudioStreaming: Start audio
-    AudioStreaming --> UdpConnected: Stop audio
-    UdpConnected --> ChannelOpened: UDP disconnect
+    RequestingChannel --> ChannelOpened: Успешный обмен Hello
+    RequestingChannel --> MqttConnected: Таймаут / ошибка Hello
+    ChannelOpened --> UdpConnected: Успешное подключение UDP
+    UdpConnected --> AudioStreaming: Начало аудио
+    AudioStreaming --> UdpConnected: Остановка аудио
+    UdpConnected --> ChannelOpened: Отключение UDP
     ChannelOpened --> MqttConnected: CloseAudioChannel()
-    MqttConnected --> Disconnected: MQTT disconnect
+    MqttConnected --> Disconnected: Отключение MQTT
 ```
 
-### 5.2 State check
+### 5.2 Проверка состояния
 
-The device determines whether the audio channel is available with:
+Устройство определяет доступность аудиоканала так:
 ```cpp
 bool IsAudioChannelOpened() const {
     return udp_ != nullptr && !error_occurred_ && !IsTimeout();
@@ -282,137 +281,137 @@ bool IsAudioChannelOpened() const {
 
 ---
 
-## 6. Configuration Parameters
+## 6. Параметры конфигурации
 
-### 6.1 MQTT settings
+### 6.1 Настройки MQTT
 
-Read from storage:
-- `endpoint` - broker address.
-- `client_id` - client identifier.
-- `username` - user name.
-- `password` - password.
-- `keepalive` - keep-alive interval (default 240 s).
-- `publish_topic` - publish topic.
+Читаются из хранилища:
+- `endpoint` — адрес брокера.
+- `client_id` — идентификатор клиента.
+- `username` — имя пользователя.
+- `password` — пароль.
+- `keepalive` — интервал keep-alive (по умолчанию 240 с).
+- `publish_topic` — тема публикации.
 
-### 6.2 Audio parameters
+### 6.2 Параметры аудио
 
-- **Format**: Opus
-- **Sample rate**: 16 kHz device / 24 kHz server
-- **Channels**: 1 (mono)
-- **Frame duration**: 60 ms
-
----
-
-## 7. Error Handling and Reconnection
-
-### 7.1 MQTT reconnect
-
-- Automatic retry on connect failure.
-- Optional error reporting.
-- Clean-up runs on disconnect.
-
-### 7.2 UDP connection
-
-- No automatic retry; depends on re-negotiation via MQTT.
-- Status can be queried at any time.
-
-### 7.3 Timeouts
-
-The base `Protocol` class provides timeout detection:
-- Default timeout: 120 s.
-- Based on the time since the last incoming packet.
-- After a timeout the channel is marked unavailable.
+- **Формат**: Opus
+- **Частота дискретизации**: 16 кГц на устройстве / 24 кГц на сервере
+- **Каналы**: 1 (моно)
+- **Длительность кадра**: 60 мс
 
 ---
 
-## 8. Security
+## 7. Обработка ошибок и переподключение
 
-### 8.1 Transport encryption
+### 7.1 Переподключение MQTT
 
-- **MQTT**: supports TLS/SSL (port 8883).
-- **UDP**: AES-CTR on audio payloads.
+- Автоматический повтор при ошибке подключения.
+- Необязательная отчётность об ошибках.
+- При разрыве выполняется очистка ресурсов.
 
-### 8.2 Authentication
+### 7.2 Соединение UDP
 
-- **MQTT**: user name / password.
-- **UDP**: keys are distributed via the MQTT channel.
+- Автоматических повторов нет; зависит от повторного согласования через MQTT.
+- Состояние можно запрашивать в любой момент.
 
-### 8.3 Anti-replay
+### 7.3 Таймауты
 
-- Monotonically increasing sequence numbers.
-- Stale packets are dropped.
-- Timestamps are validated.
+Базовый класс `Protocol` обеспечивает обнаружение таймаутов:
+- Таймаут по умолчанию: 120 с.
+- Основан на времени с момента последнего входящего пакета.
+- После таймаута канал помечается недоступным.
 
 ---
 
-## 9. Performance Notes
+## 8. Безопасность
 
-### 9.1 Concurrency
+### 8.1 Шифрование транспорта
 
-A mutex protects the UDP connection:
+- **MQTT**: поддержка TLS/SSL (порт 8883).
+- **UDP**: AES-CTR для аудиополезных нагрузок.
+
+### 8.2 Аутентификация
+
+- **MQTT**: имя пользователя / пароль.
+- **UDP**: ключи распространяются по каналу MQTT.
+
+### 8.3 Защита от повтора
+
+- Монотонно возрастающие номера последовательности.
+- Устаревшие пакеты отбрасываются.
+- Метки времени проверяются.
+
+---
+
+## 9. Замечания о производительности
+
+### 9.1 Параллельность
+
+UDP-соединение защищается мьютексом:
 ```cpp
 std::lock_guard<std::mutex> lock(channel_mutex_);
 ```
 
-### 9.2 Memory management
+### 9.2 Управление памятью
 
-- Network objects are created and destroyed dynamically.
-- Audio packets are managed with smart pointers.
-- Encryption contexts are released promptly.
+- Сетевые объекты создаются и уничтожаются динамически.
+- Аудиопакеты управляются умными указателями.
+- Контексты шифрования освобождаются своевременно.
 
-### 9.3 Network optimizations
+### 9.3 Сетевые оптимизации
 
-- UDP connection reuse.
-- Reasonable packet sizes.
-- Sequence continuity checks.
+- Переиспользование UDP-соединения.
+- Разумные размеры пакетов.
+- Проверки непрерывности последовательности.
 
 ---
 
-## 10. Comparison with WebSocket
+## 10. Сравнение с WebSocket
 
-| Feature | MQTT + UDP | WebSocket |
+| Свойство | MQTT + UDP | WebSocket |
 |---------|------------|-----------|
-| Control channel | MQTT | WebSocket |
-| Audio channel | UDP (encrypted) | WebSocket (binary) |
-| Latency | Low (UDP) | Medium |
-| Reliability | Medium | High |
-| Complexity | High | Low |
-| Encryption | AES-CTR | TLS |
-| Firewall friendliness | Low | High |
+| Канал управления | MQTT | WebSocket |
+| Аудиоканал | UDP (шифрованный) | WebSocket (двоичный) |
+| Задержка | Низкая (UDP) | Средняя |
+| Надёжность | Средняя | Высокая |
+| Сложность | Высокая | Низкая |
+| Шифрование | AES-CTR | TLS |
+| Дружелюбность к файрволу | Низкая | Высокая |
 
 ---
 
-## 11. Deployment Notes
+## 11. Замечания по развёртыванию
 
-### 11.1 Network
+### 11.1 Сеть
 
-- Ensure UDP ports are reachable.
-- Configure firewall rules accordingly.
-- Plan for NAT traversal if needed.
+- Убедитесь, что UDP-порты достижимы.
+- Соответственно настройте правила файрвола.
+- При необходимости спланируйте traversal через NAT.
 
-### 11.2 Server infrastructure
+### 11.2 Инфраструктура сервера
 
-- MQTT broker configuration.
-- UDP server deployment.
-- Key management.
+- Конфигурация брокера MQTT.
+- Развёртывание UDP-сервера.
+- Управление ключами.
 
-### 11.3 Monitoring
+### 11.3 Мониторинг
 
-- Connection success rate.
-- Audio transmission latency.
-- Packet loss.
-- Decryption failures.
+- Успешность установления соединений.
+- Задержка передачи аудио.
+- Потери пакетов.
+- Ошибки расшифровки.
 
 ---
 
-## 12. Summary
+## 12. Итог
 
-The MQTT + UDP hybrid protocol achieves efficient audio communication through:
+Гибридный протокол MQTT + UDP достигает эффективной аудиосвязи за счёт:
 
-- **Split architecture** - separate control and data channels with clear responsibilities.
-- **Encryption** - AES-CTR protects audio payloads.
-- **Sequence management** - prevents replay and reordering.
-- **Automatic recovery** - MQTT reconnects on failure.
-- **Performance** - UDP keeps audio latency low.
+- **Раздельной архитектуры** — отдельные каналы управления и данных с чёткими обязанностями.
+- **Шифрования** — AES-CTR защищает аудиополезные нагрузки.
+- **Управления последовательностью** — предотвращает повтор и перестановку.
+- **Автоматического восстановления** — MQTT переподключается при сбое.
+- **Производительности** — UDP сохраняет низкую задержку аудио.
 
-The protocol is a good fit for low-latency voice interaction, at the cost of higher network complexity than pure WebSocket.
+Протокол хорошо подходит для голосового взаимодействия с низкой задержкой, ценой более высокой сетевой сложности по сравнению с чистым WebSocket.

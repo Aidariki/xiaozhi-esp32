@@ -1,16 +1,12 @@
-# Dynamic Text Glyph Push Extension
+# Расширение динамической передачи глифов текста
 
-This document defines version 1 of the `glyph_push` protocol extension. The extension lets a server
-send bitmap glyphs that are missing from a device's installed text font. It applies equally to the
-WebSocket and MQTT/UDP transports because capability advertisement and incoming JSON handling are
-implemented in the shared protocol layer.
+Этот документ определяет версию 1 расширения протокола `glyph_push`. Расширение позволяет серверу отправлять растровые глифы, отсутствующие в установленном на устройстве текстовом шрифте. Оно одинаково применимо к транспортам WebSocket и MQTT/UDP, поскольку объявление возможностей и обработка входящих JSON реализованы в общем слое протокола.
 
-The extension supplements text rendering only. It does not change the text, TTS audio, or STT
-semantics of the containing message.
+Расширение дополняет только отрисовку текста. Оно не меняет семантику текста, аудио TTS или STT содержащего их сообщения.
 
-## 1. Capability advertisement
+## 1. Объявление возможности
 
-The device advertises support in its client `hello` message:
+Устройство объявляет поддержку в своём клиентском сообщении `hello`:
 
 ```json
 {
@@ -29,37 +25,29 @@ The device advertises support in its client `hello` message:
 }
 ```
 
-`features.glyph_push` indicates support for this extension. A server must treat a missing or false
-value as unsupported. The `v` field in each pushed payload carries the extension version.
+`features.glyph_push` указывает на поддержку данного расширения. Сервер должен трактовать отсутствующее или ложное значение как «не поддерживается». Поле `v` в каждой передаваемой полезной нагрузке содержит версию расширения.
 
-The `text_font` object describes the exact font data installed on the device:
+Объект `text_font` описывает именно те данные шрифта, которые установлены на устройстве:
 
-| Field | Type | Meaning |
+| Поле | Тип | Значение |
 |---|---|---|
-| `bundle` | string | Explicit font bundle identifier. It changes when glyph metrics, rendering behavior, character sets, or wire compatibility change. |
-| `charset` | string | Installed character set. Version 1 devices report `basic` or `common`. |
-| `size` | number | Text font pixel profile used by the firmware. |
-| `bpp` | number | Bits per pixel of the text font bitmap, currently `1` or `4`. |
+| `bundle` | строка | Явный идентификатор набора шрифта. Он меняется, когда меняются метрики глифов, поведение отрисовки, наборы символов или совместимость по каналу передачи. |
+| `charset` | строка | Установленный набор символов. Устройства версии 1 сообщают `basic` или `common`. |
+| `size` | число | Профиль пиксельного размера текстового шрифта, используемый прошивкой. |
+| `bpp` | число | Число бит на пиксел растра текстового шрифта, в настоящее время `1` или `4`. |
 
-`basic` is the font linked into the firmware. The standard XiaoZhi assets report `common` after
-loading their common font from the assets partition. The server must use the values from each
-device's hello message rather than inferring them from the board model.
+`basic` — это шрифт, линкуемый в прошивку. Стандартные ресурсы XiaoZhi сообщают `common` после загрузки общего (common) шрифта из раздела assets. Сервер обязан использовать значения из hello-сообщения каждого устройства, а не выводить их из модели платы.
 
-An OTA assets package may replace the text font with a different size, bpp, character set, or font
-family. The firmware still loads any structurally valid CBIN font. When the package also provides
-complete `text_font_meta` fields, the device advertises those active runtime values and validates
-glyph pushes against them. A legacy or custom package without compatible glyph metadata continues
-to use its custom font, emoji, colors, and background, but advertises `glyph_push: false` and omits
-`text_font`. This prevents incompatible fallback glyphs without restricting theme customization.
+Пакет ресурсов OTA может заменить текстовый шрифт другим размером, bpp, набором символов или семейством шрифта. Прошивка по-прежнему загружает любой структурно корректный CBIN-шрифт. Если пакет также предоставляет полные поля `text_font_meta`, устройство объявляет эти активные значения времени выполнения и проверяет передаваемые глифы относительно них. Устаревший или пользовательский пакет без совместимых метаданных глифов продолжает использовать свой пользовательский шрифт, эмодзи, цвета и фон, но объявляет `glyph_push: false` и опускает `text_font`. Это предотвращает появление несовместимых запасных глифов, не ограничивая настройку темы.
 
-## 2. Server glyph payload
+## 2. Полезная нагрузка глифов сервера
 
-The server may attach a `glyph_push` object to either of these server-to-device messages:
+Сервер может присоединить объект `glyph_push` к одному из этих сообщений «сервер → устройство»:
 
-- a TTS message with `"type": "tts"` and `"state": "sentence_start"`;
-- an STT message with `"type": "stt"`.
+- сообщению TTS с `"type": "tts"` и `"state": "sentence_start"`;
+- сообщению STT с `"type": "stt"`.
 
-Example:
+Пример:
 
 ```json
 {
@@ -86,100 +74,84 @@ Example:
 }
 ```
 
-The payload header must match the device capability exactly:
+Заголовок полезной нагрузки должен точно совпадать с возможностями устройства:
 
-| Field | Requirement |
+| Поле | Требование |
 |---|---|
-| `v` | Must be `1`. |
-| `bundle` | Must equal `text_font.bundle`. |
-| `size` | Must equal `text_font.size`. |
-| `bpp` | Must equal `text_font.bpp`. |
-| `glyphs` | The partial glyph batch being pushed, containing at most 64 entries. |
+| `v` | Должно быть `1`. |
+| `bundle` | Должно равняться `text_font.bundle`. |
+| `size` | Должно равняться `text_font.size`. |
+| `bpp` | Должно равняться `text_font.bpp`. |
+| `glyphs` | Передаваемая частичная партия глифов, содержащая не более 64 записей. |
 
-Each item uses the LVGL native bitmap-font metrics:
+Каждая запись использует нативные метрики растрового шрифта LVGL:
 
-| Field | Meaning |
+| Поле | Значение |
 |---|---|
-| `codepoint` | Unicode code point from `1` through `0x10FFFF`. |
-| `adv_w` | Horizontal advance in LVGL fixed-point units with four fractional bits (one pixel is 16 units). |
-| `box_w`, `box_h` | Bitmap dimensions in pixels. Each dimension must be from 0 through 64. |
-| `ofs_x`, `ofs_y` | Signed 16-bit glyph offsets relative to the text baseline and cursor position. |
-| `bitmap` | Base64 encoding of the uncompressed LVGL plain bitmap. |
+| `codepoint` | Кодовая точка Unicode от `1` до `0x10FFFF`. |
+| `adv_w` | Горизонтальный сдвиг в единицах с фиксированной точкой LVGL с четырьмя дробными битами (один пиксел — 16 единиц). |
+| `box_w`, `box_h` | Размеры растра в пикселах. Каждый размер — от 0 до 64. |
+| `ofs_x`, `ofs_y` | Знаковые 16-битные смещения глифа относительно базовой линии текста и позиции курсора. |
+| `bitmap` | Base64-кодирование несжатого простого растра LVGL. |
 
-The decoded bitmap length must be exactly:
+Длина декодированного растра должна быть ровно:
 
 ```text
 ceil(box_w * box_h * bpp / 8)
 ```
 
-The bitmap must use the same plain, zero-stride layout as the matching Noto full-bundle CBIN font.
-Servers should extract and forward the bitmap and metrics directly from that CBIN profile instead of
-rasterizing an unrelated font at request time.
+Растр должен использовать такую же простую компоновку с нулевым шагом (stride), как у соответствующего CBIN-профиля полного набора шрифта Noto. Серверам следует извлекать и передавать растр и метрики напрямую из этого CBIN-профиля, а не растеризовать посторонний шрифт во время обработки запроса.
 
-The sum of decoded bitmap lengths in one payload must not exceed 64 KiB. If any header, glyph, or
-bitmap is invalid, the device rejects the entire glyph payload but still displays the message text
-using its installed fonts. A PSRAM device may also use fallback glyphs cached by earlier messages.
+Сумма длин декодированных растров в одной полезной нагрузке не должна превышать 64 КиБ. Если какой-либо заголовок, глиф или растр некорректен, устройство отклоняет всю полезную нагрузку глифов, но всё равно отображает текст сообщения, используя установленные шрифты. Устройство с PSRAM также может использовать запасные глифы, закэшированные предыдущими сообщениями.
 
-## 3. Server selection algorithm
+## 3. Алгоритм выбора на сервере
 
-For every connection that advertises `glyph_push: true`, the server should:
+Для каждого соединения, объявляющего `glyph_push: true`, сервер должен:
 
-1. Resolve the full font bundle identified by `text_font.bundle`.
-2. Select the CBIN profile matching `text_font.size` and `text_font.bpp`.
-3. Decode the message text into Unicode code points.
-4. Remove control characters, duplicates, and code points already present in
-   `text_font.charset`.
-5. Extract the remaining glyphs from the full bundle.
-6. Apply the per-message limits and attach one `glyph_push` object to the text message.
-7. Omit `glyph_push` when no missing glyph is available.
+1. Разрешить полный набор шрифта, определяемый `text_font.bundle`.
+2. Выбрать CBIN-профиль, соответствующий `text_font.size` и `text_font.bpp`.
+3. Декодировать текст сообщения в кодовые точки Unicode.
+4. Удалить управляющие символы, дубликаты и кодовые точки, уже присутствующие в `text_font.charset`.
+5. Извлечь оставшиеся глифы из полного набора.
+6. Применить ограничения на сообщение и присоединить один объект `glyph_push` к текстовому сообщению.
+7. Опустить `glyph_push`, если ни один отсутствующий глиф недоступен.
 
-The installed text font is searched before the dynamic fallback font. Pushed glyphs therefore fill
-missing code points; they do not override glyphs in `basic` or `common`.
+Установленный текстовый шрифт просматривается раньше динамического запасного шрифта. Таким образом, переданные глифы заполняют отсутствующие кодовые точки; они не перекрывают глифы в `basic` или `common`.
 
-The full font bundle may be shared by all device connections in a server process. Per-connection
-work is limited to using the capability tuple `(bundle, charset, size, bpp)` to select which glyphs
-are missing and which profile to read.
+Полный набор шрифта может быть общим для всех подключений устройств в одном процессе сервера. Работа в расчёте на соединение ограничивается использованием кортежа возможностей `(bundle, charset, size, bpp)` для выбора того, какие глифы отсутствуют и какой профиль читать.
 
-## 4. Device cache behavior
+## 4. Поведение кэша на устройстве
 
-All glyphs in one message are inserted first, followed by a single fallback-font rebuild. The device
-never rebuilds the font once per glyph.
+Все глифы одного сообщения сначала вставляются, после чего выполняется однократная пересборка запасного шрифта. Устройство никогда не пересобирает шрифт по разу на каждый глиф.
 
-On a device with initialized PSRAM:
+На устройстве с иницииализированной PSRAM:
 
-- bitmap, cmap, descriptor, and cache-entry storage is allocated in PSRAM;
-- glyphs are retained across messages;
-- the cache holds at most 256 glyphs and 64 KiB of decoded bitmap data;
-- the least recently inserted or updated entries are evicted when a limit is exceeded.
+- хранилище растров, cmap, дескрипторов и записей кэша выделяется в PSRAM;
+- глифы сохраняются между сообщениями;
+- кэш хранит не более 256 глифов и 64 КиБ декодированных растровых данных;
+- наименее недавно вставленные или обновлённые записи вытесняются при превышении лимита.
 
-On a device without PSRAM:
+На устройстве без PSRAM:
 
-- storage uses internal RAM;
-- only the current message's glyph batch is retained;
-- the next text message replaces or clears the previous batch.
+- хранилище использует внутреннюю оперативную память;
+- сохраняется только партия глифов текущего сообщения;
+- следующее текстовое сообщение заменяет или очищает предыдущую партию.
 
-This distinction does not affect the protocol. A server can send the glyphs needed by each message
-without knowing whether the device has PSRAM.
+Это различие не влияет на протокол. Сервер может отправлять глифы, нужные каждому сообщению, не зная, есть ли у устройства PSRAM.
 
-## 5. Compatibility and versioning
+## 5. Совместимость и версионирование
 
-The server must not send glyphs when any of these conditions is true:
+Сервер не должен отправлять глифы, если верно любое из этих условий:
 
-- `features.glyph_push` is absent or not supported by the server;
-- the server does not have the advertised bundle;
-- no full-font profile matches the advertised size and bpp;
-- the glyph data cannot satisfy the version 1 validation rules.
+- `features.glyph_push` отсутствует или не поддерживается сервером;
+- у сервера нет объявленного набора шрифта;
+- ни один профиль полного шрифта не соответствует объявленным размеру и bpp;
+- данные глифов не могут удовлетворять правилам проверки версии 1.
 
-Fallback is automatic: messages without `glyph_push`, and messages whose glyph payload is rejected,
-are still processed normally.
+Откат (fallback) автоматический: сообщения без `glyph_push` и сообщения с отклонённой полезной нагрузкой глифов обрабатываются как обычно.
 
-When the font generator changes metrics, bitmap layout, source fonts, character sets, or rendering
-behavior, publish a new explicit bundle identifier. Do not serve glyphs from one bundle under
-another bundle's identifier even if their size and bpp happen to match.
+Когда генератор шрифтов меняет метрики, компоновку растров, исходные шрифты, наборы символов или поведение отрисовки, опубликуйте новый явный идентификатор набора. Не обслуживайте глифы из одного набора под идентификатором другого набора, даже если их размер и bpp случайно совпадают.
 
-## 6. Security requirements
+## 6. Требования безопасности
 
-Glyph payloads are untrusted network input. Implementations must validate the complete payload before
-mutating a live font, bound both item count and decoded size, verify base64 decoded length, and reject
-invalid code points or metrics. Servers should also bound their own per-message work and avoid
-sending glyphs already covered by the advertised charset.
+Полезные нагрузки глифов — это недоверенные сетевые входные данные. Реализации должны проверить полную полезную нагрузку до изменения рабочего шрифта, ограничить и количество записей, и декодированный размер, проверить длину после декодирования base64 и отклонять некорректные кодовые точки или метрики. Серверам также следует ограничивать собственную работу на сообщение и не отправлять глифы, уже покрытые объявленным набором символов.

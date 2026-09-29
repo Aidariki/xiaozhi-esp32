@@ -1,54 +1,54 @@
-# AGENTS.md
+# AGENTS.md (перевод на русский язык)
 
-## Project
+## Проект
 
-XiaoZhi is an ESP-IDF C/C++ voice-assistant firmware supporting many chips, boards, displays, audio devices, and network transports. A build selects exactly one board implementation.
+XiaoZhi — это прошивка голосового ассистента на ESP-IDF (C/C++), поддерживающая множество чипов, плат, дисплеев, аудиоустройств и сетевых транспортов. Каждая сборка выбирает ровно одну реализацию платы.
 
-Use ESP-IDF v6.0.2 when possible. IDF 5.5.x is retained only for documented legacy boards.
+По возможности используйте ESP-IDF v6.0.2. IDF 5.5.x сохранён только для задокументированных старых плат.
 
-## Architecture
+## Архитектура
 
-- `main/application.*`: main event loop, protocol lifecycle, and high-level behavior.
-- `main/device_state_machine.*`: legal runtime state transitions.
-- `main/boards/common/`: board interfaces and reusable hardware/network helpers.
-- `main/boards/**/`: board-specific pins, initialization, and build variants.
-- `main/audio/`: codecs, audio tasks, engines, wake words, and queues.
-- `main/protocols/`: transport-neutral API plus WebSocket and MQTT/UDP.
-- `main/display/` and `main/led/`: reusable UI implementations.
-- `main/mcp_server.*`: common device-side MCP tools and dispatch.
-- `main/Kconfig.projbuild`: board and feature configuration.
-- `main/CMakeLists.txt`: source, board, locale, font, and asset selection.
-- `scripts/build.py`: canonical board/variant build entry point.
+- `main/application.*`: главный цикл событий, жизненный цикл протокола и высокоуровневое поведение.
+- `main/device_state_machine.*`: допустимые переходы состояний во время выполнения.
+- `main/boards/common/`: интерфейсы плат и переиспользуемые вспомогательные модули аппаратной части и сети.
+- `main/boards/**/`: специфичные для платы пины, инициализация и варианты сборки.
+- `main/audio/`: кодеки, аудиозадачи, движки, слова активации и очереди.
+- `main/protocols/`: транспортно-независимый API, а также WebSocket и MQTT/UDP.
+- `main/display/` и `main/led/`: переиспользуемые реализации UI.
+- `main/mcp_server.*`: общие инструменты MCP на стороне устройства и диспетчеризация.
+- `main/Kconfig.projbuild`: конфигурация плат и функций.
+- `main/CMakeLists.txt`: выбор исходников, платы, локали, шрифта и ресурсов.
+- `scripts/build.py`: каноническая точка входа для сборки платы/варианта.
 
-Read the closest existing implementation before adding a new one. Prefer the narrowest owning layer; do not put board-specific behavior into core modules.
+Перед добавлением новой реализации прочитайте ближайшую существующую. Предпочитайте самый узкий владеющий слой; не помещайте поведение, специфичное для конкретной платы, в основные модули.
 
-## Required Rules
+## Обязательные правила
 
-- Preserve unrelated worktree changes and keep patches focused.
-- A build must export exactly one board factory through `DECLARE_BOARD(...)`.
-- Never alter an existing board's pins to support different hardware. Add a uniquely named board or release variant; board identity affects OTA compatibility.
-- Core code depends on `Board` interfaces, never a concrete board class or board `config.h`.
-- Treat camera, backlight, display, LED, battery, and similar capabilities as optional.
-- Change runtime state through `Application::SetDeviceState()` and the state machine.
-- Callbacks may run outside the main task. Schedule application mutations with `Application::Schedule()` or event bits.
-- Do not block the main event loop or audio tasks. Avoid unbounded queues and repeated large allocations in audio paths.
-- Keep shared message semantics in `Protocol`; verify both transports when changing its contract.
-- Validate network input and preserve `cJSON` ownership. NVS keys are persistent API and require migration when changed.
-- Guard target-specific features with Kconfig/component rules. Do not assume every target has PSRAM or S3/P4 resources.
-- Do not manually edit generated/vendor output: `build/`, `releases/`, `managed_components/`, `components/`, `sdkconfig*`, `main/assets/lang_config.h`, or generated mmap headers.
-- Format only touched C/C++ files with the repository `.clang-format`; avoid unrelated mass formatting.
+- Сохраняйте несвязанные изменения в рабочем дереве; патчи должны быть сфокусированными.
+- Сборка должна экспортировать ровно одну фабрику плат через `DECLARE_BOARD(...)`.
+- Никогда не изменяйте пины существующей платы ради другого оборудования. Вместо этого добавьте плату или релизный вариант с уникальным именем; идентичность платы влияет на совместимость OTA.
+- Основной код зависит от интерфейсов `Board`, но никогда от конкретного класса платы или `config.h` платы.
+- Считайте камеру, подсветку, дисплей, светодиод, батарею и подобные возможности опциональными.
+- Изменяйте состояние исполнения только через `Application::SetDeviceState()` и машину состояний.
+- Колбэки могут выполняться вне главной задачи. Планируйте изменения состояния приложения через `Application::Schedule()` или event bits.
+- Не блокируйте главный цикл событий и аудиозадачи. Избегайте неограниченных очередей и повторяющихся крупных выделений памяти на аудиопутях.
+- Общую семантику сообщений держите в `Protocol`; при изменении его контракта проверяйте оба транспорта.
+- Проверяйте данные, поступающие из сети, и сохраняйте владение объектами `cJSON`. Ключи NVS — это постоянный API: при их изменении требуется миграция.
+- Специфичные для цели сборки возможности ограничивайте правилами Kconfig/компонентов. Не предполагайте, что у каждой цели есть PSRAM или ресурсы S3/P4.
+- Не редактируйте вручную сгенерированные/вендорские артефакты: `build/`, `releases/`, `managed_components/`, `components/`, `sdkconfig*`, `main/assets/lang_config.h` и сгенерированные mmap-заголовки.
+- Форматируйте только затронутые файлы C/C++ с помощью `.clang-format` из репозитория; избегайте массового форматирования несвязанных файлов.
 
-## Boards and Configuration
+## Платы и конфигурация
 
-Board selection is a coupled chain:
+Выбор платы — это связанная цепочка:
 
-`config.json` -> `scripts/build.py` -> `main/Kconfig.projbuild` -> `main/CMakeLists.txt` -> board source and `config.h`.
+`config.json` -> `scripts/build.py` -> `main/Kconfig.projbuild` -> `main/CMakeLists.txt` -> исходники платы и `config.h`.
 
-When adding a board or variant, update every relevant link in that chain. Include a unique board identity, correct chip target, flash/partition settings, exactly one `DECLARE_BOARD`, and board documentation. Follow `docs/custom-board.md`.
+При добавлении платы или варианта обновите каждое соответствующее звено этой цепочки. Включите уникальную идентичность платы, корректную целевую микросхему, настройки flash/разделов, ровно один `DECLARE_BOARD` и документацию к плате. Следуйте `docs/custom-board.md`.
 
-## Commands
+## Команды
 
-Source the intended ESP-IDF environment first:
+Сначала активируйте нужное окружение ESP-IDF:
 
 ```sh
 source /path/to/esp-idf/export.sh
@@ -56,39 +56,39 @@ idf.py --version
 ```
 
 ```sh
-# Discover exact board and variant names
+# Узнать точные названия плат и вариантов
 python3 scripts/build.py --list-boards
 
-# Canonical variant build
-python3 scripts/build.py <board-directory> --name <variant-name>
+# Каноническая сборка варианта
+python3 scripts/build.py <каталог-платы> --name <имя-варианта>
 
-# Host-side build tests
+# Тесты на стороне хоста
 python3 -m unittest discover -s scripts/tests -v
 
-# Format/check touched files
-clang-format -i <files>
-clang-format --dry-run -Werror <files>
+# Форматирование/проверка затронутых файлов
+clang-format -i <файлы>
+clang-format --dry-run -Werror <файлы>
 ```
 
-The build script changes local `sdkconfig` and build state. Do not assume the build directory still represents a previous target.
+Скрипт сборки изменяет локальные `sdkconfig` и состояние сборки. Не предполагайте, что каталог сборки по-прежнему представляет предыдущую цель.
 
-## Validation
+## Проверка
 
-- Board-only change: build affected variants and smoke-test changed hardware.
-- Core, common-board, audio, protocol, display, dependency, Kconfig, or CMake change: run host tests and build representative affected chip/network paths.
-- Protocol changes: verify WebSocket and MQTT/UDP when shared behavior changes.
-- Audio changes: verify capture, playback, wake/VAD, interruption, reconnect, and applicable AEC modes.
-- UI/assets changes: verify applicable no-display/OLED/LVGL paths and partition size.
-- Always report what was tested and what still needs physical hardware. A successful build is not hardware validation.
+- Изменение только в плате: соберите затронутые варианты и протестируйте изменённое оборудование в базовом сценарии.
+- Изменение в core, общих платах, аудио, протоколе, отображении, зависимостях, Kconfig или CMake: запустите хост-тесты и соберите представительные затронутые пути чипа/сети.
+- Изменения протокола: при изменении общего поведения проверьте WebSocket и MQTT/UDP.
+- Изменения аудио: проверьте запись, воспроизведение, активацию/VAD, прерывание, переподключение и применимые режимы AEC.
+- Изменения UI/ресурсов: проверьте применимые пути «без дисплея»/OLED/LVGL и размер раздела.
+- Всегда сообщайте, что было протестировано и что всё ещё требует физического оборудования. Успешная сборка — это не проверка оборудования.
 
-## Authoritative Documentation
+## Авторитетная документация
 
-- Overview and SDK policy: `README.md`
-- SDK compatibility: `docs/esp-idf-6-migration.md`
-- Board guide: `docs/custom-board.md`
-- Audio design: `main/audio/README.md`
-- Code style: `docs/code_style.md`
-- Protocols: `docs/websocket.md`, `docs/mqtt-udp.md`, `docs/mcp-protocol.md`
-- CI matrix: `.github/workflows/build.yml`
+- Обзор и политика в отношении SDK: `README.md`
+- Совместимость SDK: `docs/esp-idf-6-migration.md`
+- Руководство по платам: `docs/custom-board.md`
+- Проектирование аудио: `main/audio/README.md`
+- Стиль кода: `docs/code_style.md`
+- Протоколы: `docs/websocket.md`, `docs/mqtt-udp.md`, `docs/mcp-protocol.md`
+- Матрица CI: `.github/workflows/build.yml`
 
-Keep detailed or fast-changing information in those files, not here. Add a nested `AGENTS.md` only when a subsystem needs specialized instructions.
+Подробную или быстро меняющуюся информацию держите в тех файлах, а не здесь. Добавляйте вложенный `AGENTS.md` только тогда, когда подсистеме нужны специальные инструкции.

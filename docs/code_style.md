@@ -1,17 +1,17 @@
-# Code Style Guide
+# Руководство по стилю кода
 
-## Formatting Tool
+## Инструмент форматирования
 
-This project uses `clang-format` to keep the code style consistent. The `.clang-format` file in the project root is based on the Google C++ style guide with a few project-specific tweaks.
+В этом проекте для единообразия стиля кода используется `clang-format`. Файл `.clang-format` в корне проекта основан на руководстве по стилю C++ от Google с несколькими проектными настройками.
 
-### Installing clang-format
+### Установка clang-format
 
-Make sure `clang-format` is available before you use it:
+Убедитесь, что `clang-format` доступен, до его использования:
 
 - **Windows**:
   ```powershell
   winget install LLVM
-  # or with Chocolatey
+  # или через Chocolatey
   choco install llvm
   ```
 
@@ -26,65 +26,65 @@ Make sure `clang-format` is available before you use it:
   brew install clang-format
   ```
 
-### Usage
+### Использование
 
-1. **Format a single file**:
+1. **Отформатировать один файл**:
    ```bash
    clang-format -i path/to/your/file.cpp
    ```
 
-2. **Format the entire project**:
+2. **Отформатировать весь проект**:
    ```bash
-   # Run from the project root
+   # Выполнять из корня проекта
    find main -iname '*.h' -o -iname '*.cc' | xargs clang-format -i
    ```
 
-3. **Check formatting without modifying files (useful in CI / pre-commit)**:
+3. **Проверить форматирование без изменения файлов (удобно в CI / pre-commit)**:
    ```bash
    clang-format --dry-run -Werror path/to/your/file.cpp
    ```
 
-### IDE Integration
+### Интеграция со средой разработки
 
 - **Visual Studio Code**:
-  1. Install the C/C++ extension.
-  2. Set `C_Cpp.formatting` to `clangFormat` in settings.
-  3. Optionally enable `editor.formatOnSave`.
+  1. Установите расширение C/C++.
+  2. В настройках задайте `C_Cpp.formatting` равным `clangFormat`.
+  3. При желании включите `editor.formatOnSave`.
 
 - **CLion**:
-  1. Open `Editor > Code Style > C/C++` in the settings.
-  2. Set `Formatter` to `clang-format`.
-  3. Choose "use the .clang-format file in the project".
+  1. Откройте `Editor > Code Style > C/C++` в настройках.
+  2. Установите `Formatter` равным `clang-format`.
+  3. Выберите «использовать файл .clang-format из проекта».
 
-### Main Rules
+### Основные правила
 
-- Indent with 4 spaces.
-- Line width capped at 100 characters.
-- Attach-style braces (`{` on the same line as the control statement).
-- Pointers and references bind to the type (left alignment).
-- Includes are sorted automatically.
-- Access specifiers are indented by -4 spaces.
+- Отступы — 4 пробела.
+- Максимальная ширина строки — 100 символов.
+- Фигурные скобки присоединяются (`{` на той же строке, что и управляющий оператор).
+- Указатели и ссылки привязываются к типу (выравнивание влево).
+- Директивы include сортируются автоматически.
+- Спецификаторы доступа имеют отступ -4 пробела.
 
-### Notes
+### Замечания
 
-1. Make sure the code has been formatted before committing.
-2. Do not fix up alignment by hand after running clang-format.
-3. To exclude a block from formatting, wrap it with:
+1. Убедитесь, что код отформатирован перед коммитом.
+2. Не поправляйте выравнивание вручную после запуска clang-format.
+3. Чтобы исключить блок из форматирования, оберните его:
    ```cpp
    // clang-format off
    your code
    // clang-format on
    ```
 
-### FAQ
+### Частые вопросы
 
-1. **Formatting fails**:
-   - Check whether `clang-format` is too old.
-   - Make sure the file is UTF-8 encoded.
-   - Validate the syntax of your `.clang-format` file.
+1. **Форматирование завершается ошибкой**:
+   - Проверьте, не слишком ли старая версия `clang-format` установлена.
+   - Убедитесь, что файл имеет кодировку UTF-8.
+   - Проверьте синтаксис вашего файла `.clang-format`.
 
-2. **Output differs from what you expected**:
-   - Verify that the `.clang-format` in the project root is actually picked up.
-   - Make sure no other `.clang-format` higher in the tree is winning.
+2. **Результат отличается от ожидаемого**:
+   - Убедитесь, что файл `.clang-format` в корне проекта действительно применяется.
+   - Проверьте, что выше по дереву каталогов нет другого `.clang-format`, который имеет приоритет.
 
-Questions and suggestions are welcome - please open an issue or a pull request.
+Вопросы и предложения приветствуются — создайте issue или pull request.

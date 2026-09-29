@@ -1,6 +1,6 @@
 # Чат-бот на основе MCP
 
-([Русский](README.md) | [English](https://github.com/78/xiaozhi-esp32/blob/main/README.md) | [中文](README_zh.md) | [日本語](README_ja.md))
+([Русский](README.md) | [English](https://github.com/78/xiaozhi-esp32/blob/main/README.md))
 
 ## Введение
 

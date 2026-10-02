@@ -24,8 +24,12 @@ jobs:
       - name: Сборка прошивки (Guition JC1060P470C, ESP32-P4)
         run: |
           . /opt/esp/idf/export.sh
+          # Тип платы прописывается ДО set-target: при генерации sdkconfig
+          # из sdkconfig.defaults выбор платы должен быть задан явно,
+          # иначе BOARD_DIR не определится и конфигурация упадёт.
+          echo 'CONFIG_IDF_TARGET="esp32p4"' >> sdkconfig.defaults
+          echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig.defaults
           idf.py set-target esp32p4
-          echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig
           idf.py build
 
       - name: Upload firmware artifact

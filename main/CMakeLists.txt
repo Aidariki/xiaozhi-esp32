@@ -285,17 +285,20 @@ if(CONFIG_IDF_TARGET_ESP32S3)
 endif()
 
 set(MAIN_PRIV_REQUIRES_EXTRA "")
+set(EYES_ENABLED OFF)
+# Интерактивные глаза: компонент eyes подключается только если выбран
+# нестандартный облик (см. Kconfig -> «Интерактивные глаза»).
+# Макрос CONFIG_USE_EYES добавляется через отдельный if() ПОСЛЕ
+# idf_component_register, т.к. цель ${COMPONENT_LIB} до регистрации
+# ещё не существует.
 if(CONFIG_BOARD_TYPE_GUITION_JC1060P470)
     list(APPEND MAIN_PRIV_REQUIRES_EXTRA
         esp_driver_sdmmc
         sdmmc
     )
-    # Интерактивные глаза: компонент eyes и макрос CONFIG_USE_EYES
-    # подключаются только если выбран нестандартный облик
-    # (см. Kconfig -> «Интерактивные глаза»).
     if(NOT CONFIG_EYES_TYPE_STANDARD)
         list(APPEND MAIN_PRIV_REQUIRES_EXTRA eyes)
-        target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
+        set(EYES_ENABLED ON)
     endif()
 endif()
 idf_component_register(SRCS ${SOURCES}
@@ -344,6 +347,14 @@ if(NOT _font_match)
 endif()
 set(TEXT_FONT_SIZE "${CMAKE_MATCH_1}")
 set(TEXT_FONT_BPP "${CMAKE_MATCH_2}")
+# Интерактивные глаза: макрос CONFIG_USE_EYES включается, если в
+# конфигураторе выбран нестандартный облик глаз. Добавляется ПОСЛЕ
+# idf_component_register — до регистрации цель не существует (иначе
+# CMake падает с «Cannot specify compile definitions for target ...»).
+if(NOT CMAKE_BUILD_EARLY_EXPANSION AND EYES_ENABLED)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
+endif()
+
 if(NOT CMAKE_BUILD_EARLY_EXPANSION)
     target_compile_definitions(${COMPONENT_LIB}
                         PRIVATE BOARD_TYPE=\"${BOARD_TYPE}\" BOARD_NAME=\"${BOARD_NAME}\"

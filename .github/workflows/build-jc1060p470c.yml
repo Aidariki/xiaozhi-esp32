@@ -19,9 +19,12 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build firmware (Guition JC1060P470C, ESP32-P4)
+      - name: Activate ESP-IDF environment
         run: |
           . $IDF_PATH/export.sh
+
+      - name: Build firmware (Guition JC1060P470C, ESP32-P4)
+        run: |
           idf.py set-target esp32p4
           echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig
           idf.py build

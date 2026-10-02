@@ -17,6 +17,9 @@
 #include "settings.h"
 #include "lvgl_theme.h"
 #include "lvgl_display.h"
+#ifdef CONFIG_USE_EYES
+#include "eyes_display.h"
+#endif
 
 #define TAG "MCP"
 
@@ -96,6 +99,49 @@ void McpServer::AddCommonTools() {
                 return false;
             });
     }
+
+#ifdef CONFIG_USE_EYES
+    // Навык «Интерактивные глаза»: доступен, когда в menuconfig выбран
+    // нестандартный облик глаз (см. main/CMakeLists.txt и Kconfig).
+    auto eyes_display = dynamic_cast<EyesLcdDisplay*>(display);
+    if (eyes_display) {
+        AddTool("self.eyes.set_style",
+            "Установить облик интерактивных глаз на экране устройства.\n"
+            "Допустимые значения `style`:\n"
+            "  `standard` — стандартный облик XiaoZhi (слой глаз убирается);\n"
+            "  `classic` — классические круглые глаза (стиль M5Stack);\n"
+            "  `robot` — робот-визоры со светящейся полосой;\n"
+            "  `pixel` — пиксельные ретро-глаза 8-bit;\n"
+            "  `anime` — аниме-глаза с ресницами и бликами;\n"
+            "  `kawaii` — каваи-глаза arco.\n"
+            "Выбор сохраняется между перезагрузками.",
+            PropertyList({
+                Property("style", kPropertyTypeString)
+            }),
+            [eyes_display](const PropertyList& properties) -> ReturnValue {
+                auto name = properties["style"].value<std::string>();
+                static const char* kStyles[] = {"standard", "classic", "robot",
+                                                "pixel", "anime", "kawaii"};
+                for (int i = 0; i < 6; i++) {
+                    if (name == kStyles[i]) {
+                        eyes_display->SetEyesType(i);
+                        return std::string("Глаза: ") + EyesLcdDisplay::EyesTypeName(i);
+                    }
+                }
+                throw std::runtime_error(
+                    "Неизвестный стиль глаз. Допустимы: standard, classic, robot, pixel, anime, kawaii");
+            });
+
+        AddTool("self.eyes.get_style",
+            "Получить текущий облик интерактивных глаз (например: `kawaii`).",
+            PropertyList(),
+            [eyes_display](const PropertyList& properties) -> ReturnValue {
+                static const char* kStyles[] = {"standard", "classic", "robot",
+                                                "pixel", "anime", "kawaii"};
+                return std::string(kStyles[eyes_display->CurrentEyesType()]);
+            });
+    }
+#endif
 
     auto camera = board.GetCamera();
     if (camera) {

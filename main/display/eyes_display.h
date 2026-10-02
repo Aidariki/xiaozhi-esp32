@@ -28,16 +28,24 @@ public:
     // Удалить слой глаз (возврат к стандартному облику).
     void DisableEyes();
     // Переключить облик на следующий по кругу (0..5), сохранить в настройки.
-    void CycleEyesType() {
-        eyes_type_ = (eyes_type_ + 1) % 6;
+    void CycleEyesType() { SetEyesType((eyes_type_ + 1) % 6); }
+
+    // Явно задать облик глаз (0..5), сохранить в настройки. Возвращает новый тип.
+    int SetEyesType(int t) {
+        if (t < 0 || t > 5) return eyes_type_;
+        eyes_type_ = t;
         Settings settings("interface", true);
         settings.SetInt("eyes_type", eyes_type_);
         DisableEyes();
         if (eyes_type_ != 0) EnableEyes();
+        return eyes_type_;
     }
 
     // Текущий выбранный тип глаз (0 = стандартный).
     int CurrentEyesType() const { return eyes_type_; }
+
+    // Имена обликов для уведомлений и MCP-описаний (индекс = тип 0..5).
+    static const char* EyesTypeName(int t);
 
     virtual void SetEmotion(const char* emotion) override;
 

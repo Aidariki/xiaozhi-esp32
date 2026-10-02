@@ -1,6 +1,14 @@
 // Реализация обёртки «Интерактивные глаза».
 #include "eyes_display.h"
 
+// Имена обликов глаз (используются в UI-уведомлениях и MCP-описаниях).
+const char* EyesLcdDisplay::EyesTypeName(int t) {
+    static const char* kNames[] = {
+        "Стандартный", "Классические", "Робот", "Пиксельные", "Аниме", "Каваи"};
+    if (t < 0 || t > 5) return "Неизвестно";
+    return kNames[t];
+}
+
 #ifdef CONFIG_USE_EYES
 #include <esp_log.h>
 #include <lvgl.h>

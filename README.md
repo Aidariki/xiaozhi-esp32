@@ -45,6 +45,59 @@ GitHub Actions собирает прошивку автоматически пр
 - `main/CMakeLists.txt`: убраны ветви выбора чужих плат и блоки ESP-VoCat / ESP-HI.
 - Язык интерфейса по умолчанию — русский (`LANGUAGE_RU_RU`).
 - Документация и комментарии переведены на русский язык.
+- Добавлены «Интерактивные глаза» (компонент `components/eyes`): 5 анимированных
+  обликов (классические, робот-визоры, пиксельные, аниме, каваи) с морганием и
+  реакцией на настроение ассистента. Выбор — в `menuconfig` → «Интерактивные глаза»,
+  переключение коротким нажатием BOOT или голосом через MCP-навыки
+  `self.eyes.set_style` / `self.eyes.get_style`. По умолчанию выбран стандартный
+  облик — влияние на размер прошивки отсутствует.
+
+## Как добавить свой навык агенту (MCP-инструмент)
+
+Скиллами (навыками) агента в XiaoZhi управляет встроенный **MCP-сервер**
+(`main/mcp_server.cc/.h`, протокол — JSON-RPC 2.0 поверх WebSocket/MQTT; подробно
+в `docs/mcp-usage.md` и `docs/mcp-protocol.md`). Сервер сам отдаёт облаку список
+инструментов (`tools/list`), и большая модель вызывает их (`tools/call`) — то есть
+новый навык не нужно описывать на сайте xz: он «самообнаруживается» с прошивкой.
+
+Регистрация навыка делается в функции платы `InitializeTools()`:
+
+```cpp
+auto& mcp_server = McpServer::GetInstance();
+mcp_server.AddTool("self.light.set_rgb",        // имя: «модуль.действие»
+    "Установить цвет RGB подсветки",            // описание для LLM (можно на русском)
+    PropertyList({                               // параметры: int/bool/string (+диапазон)
+        Property("r", kPropertyTypeInteger, 0, 255),
+        Property("g", kPropertyTypeInteger, 0, 255),
+        Property("b", kPropertyTypeInteger, 0, 255)
+    }),
+    [](const PropertyList& p) -> ReturnValue {   // тело навыка
+        SetLedColor(p["r"].value<int>(), p["g"].value<int>(), p["b"].value<int>());
+        return true;                             // bool/int/string/JSON
+    });
+```
+
+Дополнительно: `AddUserOnlyTool()` — навык доступен только владельцу устройства
+(через отладочное подключение); исключения из callback превращаются в текст ошибки
+для модели.
+
+## Навыки, доступные агенту прямо сейчас
+
+Встроенные (всегда, `AddCommonTools`):
+- `self.get_device_status` — статус устройства (динамик, экран, сеть, батарея)
+- `self.audio_speaker.set_volume` — громкость динамика (0–100)
+- `self.screen.set_brightness` — яркость экрана (есть подсветка — а JC1060P470C есть)
+- `self.screen.set_theme` — тема экрана light/dark (LVGL-дисплеи)
+- `self.camera.take_photo` + ответ на вопрос о фото (если плата возвращает камеру)
+
+Только для владельца (`AddUserOnlyTools`): `self.get_system_info`, `self.reboot`,
+`self.upgrade_firmware` (OTA по URL), `self.screen.get_info`, `self.screen.snapshot`
+(скриншот на URL), `self.screen.preview_image`, `self.assets.set_download_url`.
+
+Навыки этой сборки (JC1060P470C):
+- `self.set_press_to_talk` — режим push-to-talk / click-to-talk (общий модуль плат)
+- `self.eyes.set_style` / `self.eyes.get_style` — новые интерактивные глаза
+  (активны, если в menuconfig выбран нестандартный облик)
 
 ## Лицензия
 

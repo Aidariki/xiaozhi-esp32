@@ -17,6 +17,7 @@ set(SOURCES "audio/audio_codec.cc"
             "display/text_glyph.cc"
             "display/lcd_display.cc"
             "display/eyes_display.cc"
+            "eyes/eyes.cc"
             "display/oled_display.cc"
             "display/lvgl_display/lvgl_display.cc"
             "display/emote_display.cc"
@@ -43,7 +44,7 @@ set(SOURCES "audio/audio_codec.cc"
             "main.cc"
             )
 
-set(INCLUDE_DIRS "." "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols")
+set(INCLUDE_DIRS "." "display" "display/lvgl_display" "display/lvgl_display/jpg" "audio" "audio/demuxer" "protocols" "eyes")
 
 # Add board common files
 list(APPEND SOURCES
@@ -285,18 +286,17 @@ if(CONFIG_IDF_TARGET_ESP32S3)
 endif()
 
 set(MAIN_PRIV_REQUIRES_EXTRA "")
-# Интерактивные глаза: компонент eyes подключается всегда (см. Kconfig ->
-# «Интерактивные глаза»). При выбранном штатном облике eyes.cc компилируется
-# в пустую единицу трансляции (#if по CONFIG_EYES_TYPE_* в исходниках), а
-# обёртка EyesLcdDisplay работает как обычный MipiLcdDisplay. Заголовки
-# eyes.h публикуются самим компонентом (INCLUDE_DIRS ".") — ручной путь не
-# нужен; отдельные target_compile_definitions для глаз не задаются:
-# Kconfig-макросы доступны всем TU автоматически через -include sdkconfig.h.
+# Интерактивные глаза: исходники eyes/eyes.cc и display/eyes_display.cc
+# компилируются в составе компонента main (см. SOURCES выше) — отдельный
+# IDF-компонент не используется, т.к. при MINIMAL_BUILD корневой CMakeLists
+# не сканирует папку components/ и include-пути глаз не публиковались бы.
+# При выбранном штатном облике eyes.cc компилируется в пустую единицу
+# трансляции (#if по CONFIG_EYES_TYPE_*), Kconfig-макросы доступны всем TU
+# автоматически через -include sdkconfig.h.
 if(CONFIG_BOARD_TYPE_GUITION_JC1060P470)
     list(APPEND MAIN_PRIV_REQUIRES_EXTRA
         esp_driver_sdmmc
         sdmmc
-        eyes
     )
 endif()
 

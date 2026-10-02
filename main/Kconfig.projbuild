@@ -119,6 +119,7 @@ choice BOARD_TYPE
         Тип платы для OTA и имя варианта прошивки задаются в config.json.
     default BOARD_TYPE_GUITION_JC1060P470 if IDF_TARGET_ESP32P4
     config BOARD_TYPE_GUITION_JC1060P470
+        bool "Guition JC1060P470C (ESP32-P4)"
 endchoice
 
 choice DISPLAY_STYLE

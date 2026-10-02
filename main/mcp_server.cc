@@ -17,9 +17,9 @@
 #include "settings.h"
 #include "lvgl_theme.h"
 #include "lvgl_display.h"
-#ifdef CONFIG_USE_EYES
+// Обёртка «Интерактивные глаза» доступна всегда; реализации компилируются
+// только при выбранном нестандартном облике (#if по CONFIG_EYES_TYPE_*).
 #include "eyes_display.h"
-#endif
 
 #define TAG "MCP"
 
@@ -100,9 +100,11 @@ void McpServer::AddCommonTools() {
             });
     }
 
-#ifdef CONFIG_USE_EYES
-    // Навык «Интерактивные глаза»: доступен, когда в menuconfig выбран
-    // нестандартный облик глаз (см. main/CMakeLists.txt и Kconfig).
+// Навык «Интерактивные глаза»: доступен, когда в конфигураторе выбран
+// нестандартный облик глаз (#if по CONFIG_EYES_TYPE_* — см. Kconfig).
+#if defined(CONFIG_EYES_TYPE_CLASSIC) || defined(CONFIG_EYES_TYPE_ROBOT) || \
+    defined(CONFIG_EYES_TYPE_PIXEL) || defined(CONFIG_EYES_TYPE_ANIME) || \
+    defined(CONFIG_EYES_TYPE_KAWAII)
     auto eyes_display = dynamic_cast<EyesLcdDisplay*>(display);
     if (eyes_display) {
         AddTool("self.eyes.set_style",
@@ -141,7 +143,7 @@ void McpServer::AddCommonTools() {
                 return std::string(kStyles[eyes_display->CurrentEyesType()]);
             });
     }
-#endif
+#endif  // выбор нестандартного облика глаз (CONFIG_EYES_TYPE_*)
 
     auto camera = board.GetCamera();
     if (camera) {

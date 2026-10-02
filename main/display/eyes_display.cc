@@ -9,7 +9,9 @@ const char* EyesLcdDisplay::EyesTypeName(int t) {
     return kNames[t];
 }
 
-#ifdef CONFIG_USE_EYES
+#if defined(CONFIG_EYES_TYPE_CLASSIC) || defined(CONFIG_EYES_TYPE_ROBOT) || \
+    defined(CONFIG_EYES_TYPE_PIXEL) || defined(CONFIG_EYES_TYPE_ANIME) || \
+    defined(CONFIG_EYES_TYPE_KAWAII)
 #include <esp_log.h>
 #include <lvgl.h>
 #include "settings.h"

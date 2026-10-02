@@ -175,17 +175,19 @@ private:
                 EnterWifiConfigMode();
                 return;
             }
-#ifdef CONFIG_USE_EYES
-            // Короткое нажатие BOOT переключает облик глаз (сохраняется в настройки).
-            static const char* kEyesNames[] = {
-                "Стандартный", "Классические", "Робот", "Пиксельные",
-                "Аниме", "Каваи"};
+            // Короткое нажатие BOOT циклически переключает облик глаз
+            // (сохраняется в NVS, восстанавливается после перезагрузки).
+            // При выбранном в конфигураторе нестандартном облике первое
+            // нажатие возвращает к стандартному поведению — переключение
+            // чата. Смена облика доступна и через MCP-инструменты глаз.
+            if (display_->CurrentEyesType() == 0) {
+                app.ToggleChatState();
+                return;
+            }
             display_->CycleEyesType();
-            int t = display_->CurrentEyesType();
-            display_->ShowNotification(std::string("Глаза: ") + kEyesNames[t], 2000);
-#else
-            app.ToggleChatState();
-#endif
+            display_->ShowNotification(
+                std::string("Глаза: ") + EyesLcdDisplay::EyesTypeName(display_->CurrentEyesType()),
+                2000);
         });
     }
 
@@ -325,9 +327,9 @@ public:
         InitializeCamera();
         InitializeFonts();
         GetBacklight()->RestoreBrightness();
-#ifdef CONFIG_USE_EYES
+        // Слой глаз включается только если выбран нестандартный облик
+        // (в конфигураторе или сохранённый ранее в NVS).
         display_->EnableEyes();
-#endif
         ESP_LOGI(TAG, "Плата Guition JC1060P470C готова");
     }
 

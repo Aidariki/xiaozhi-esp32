@@ -7,9 +7,10 @@
 #include "lcd_display.h"
 #include "settings.h"
 
-#ifdef CONFIG_USE_EYES
+// Заголовки глаз доступны всегда (Kconfig-макрос CONFIG_EYES_TYPE_*
+// задаётся IDF автоматически); реализации компилируются только при
+// выбранном нестандартном облике — см. main/CMakeLists.txt.
 #include "eyes.h"
-#endif
 
 class EyesLcdDisplay : public MipiLcdDisplay {
 public:
@@ -50,9 +51,8 @@ public:
     virtual void SetEmotion(const char* emotion) override;
 
 private:
-#ifdef CONFIG_USE_EYES
+    // Слой глаз (nullptr, если облик отключён на этапе компиляции)
     lv_obj_t* eyes_layer_ = nullptr;
-#endif
     int eyes_type_ = 0;
 };
 

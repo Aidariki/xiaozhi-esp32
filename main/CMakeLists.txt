@@ -16,7 +16,7 @@ set(SOURCES "audio/audio_codec.cc"
             "display/display.cc"
             "display/text_glyph.cc"
             "display/lcd_display.cc"
-                    "display/eyes_display.cc"
+            "display/eyes_display.cc"
             "display/oled_display.cc"
             "display/lvgl_display/lvgl_display.cc"
             "display/emote_display.cc"
@@ -285,27 +285,19 @@ if(CONFIG_IDF_TARGET_ESP32S3)
 endif()
 
 set(MAIN_PRIV_REQUIRES_EXTRA "")
-set(EYES_ENABLED OFF)
-# Интерактивные глаза: компонент eyes подключается только если выбран
-# нестандартный облик (см. Kconfig -> «Интерактивные глаза»).
-# Макрос CONFIG_USE_EYES добавляется через отдельный if() ПОСЛЕ
-# idf_component_register, т.к. цель ${COMPONENT_LIB} до регистрации
-# ещё не существует.
+# Интерактивные глаза: компонент eyes подключается всегда (см. Kconfig ->
+# «Интерактивные глаза»). При выбранном штатном облике eyes.cc компилируется
+# в пустую единицу трансляции (#if по CONFIG_EYES_TYPE_* в исходниках), а
+# обёртка EyesLcdDisplay работает как обычный MipiLcdDisplay. Заголовки
+# eyes.h публикуются самим компонентом (INCLUDE_DIRS ".") — ручной путь не
+# нужен; отдельные target_compile_definitions для глаз не задаются:
+# Kconfig-макросы доступны всем TU автоматически через -include sdkconfig.h.
 if(CONFIG_BOARD_TYPE_GUITION_JC1060P470)
     list(APPEND MAIN_PRIV_REQUIRES_EXTRA
         esp_driver_sdmmc
         sdmmc
+        eyes
     )
-    if(NOT CONFIG_EYES_TYPE_STANDARD)
-        list(APPEND MAIN_PRIV_REQUIRES_EXTRA eyes)
-        set(EYES_ENABLED ON)
-    endif()
-endif()
-if(EYES_ENABLED)
-    # Путь к заголовкам компонента eyes добавляем в INCLUDE_DIRS вручную:
-    # при включённом MINIMAL_BUILD (см. корневой CMakeLists.txt) привязка
-    # через PRIV_REQUIRES не даёт автоматической публикации include-путей.
-    list(APPEND INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/components/eyes)
 endif()
 
 idf_component_register(SRCS ${SOURCES}
@@ -338,20 +330,6 @@ idf_component_register(SRCS ${SOURCES}
                         ${MAIN_PRIV_REQUIRES_EXTRA}
                     )
 
-# Макрос глаз задаётся ПОСЛЕ idf_component_register: до регистрации
-# цель ${COMPONENT_LIB} ещё не существует (иначе CMake падает с ошибкой
-# «Cannot specify compile definitions for target ...»).
-# ВАЖНО: при включённом MINIMAL_BUILD (корневой CMakeLists.txt) папка
-# components/ не сканируется автоматически, поэтому компонент eyes
-# регистрируется явно ниже — иначе линковка падает с «undefined
-# reference to eyes::...».
-if(EYES_ENABLED)
-    if(NOT TARGET idf::eyes AND NOT TARGET eyes)
-        add_subdirectory(${CMAKE_SOURCE_DIR}/components/eyes
-                         ${CMAKE_BINARY_DIR}/esp-idf/eyes)
-    endif()
-    target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
-endif()
 
 
 # Use target_compile_definitions to define the reported board identity

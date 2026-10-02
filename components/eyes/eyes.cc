@@ -1,8 +1,10 @@
 // Реализация интерактивных глаз (варианты из сообщества xiaozhi-esp32 /
 // M5Stack CoreS3 / LVGL examples / xiaozhi-esp32-lcd-example).
-// Если выбран штатный облик глаз (CONFIG_USE_EYES не определён),
-// компонент собирается в «пустой» объект (см. CMakeLists.txt).
-#ifdef CONFIG_USE_EYES
+// Если в конфигураторе выбран штатный облик глаз, код ниже
+// исключается из сборки (пустая единица трансляции).
+#if defined(CONFIG_EYES_TYPE_CLASSIC) || defined(CONFIG_EYES_TYPE_ROBOT) || \
+    defined(CONFIG_EYES_TYPE_PIXEL) || defined(CONFIG_EYES_TYPE_ANIME) || \
+    defined(CONFIG_EYES_TYPE_KAWAII)
 #include "eyes.h"
 
 #include <esp_log.h>
@@ -253,5 +255,5 @@ static void apply_mood(EyesState* st) {
 
 }  // namespace eyes
 
-#endif  // CONFIG_USE_EYES
+#endif  // выбор нестандартного облика глаз
 

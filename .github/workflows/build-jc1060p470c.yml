@@ -21,7 +21,7 @@ jobs:
 
       - name: Activate ESP-IDF environment
         run: |
-          . $IDF_PATH/export.sh
+          . /opt/esp/idf/export.sh
 
       - name: Build firmware (Guition JC1060P470C, ESP32-P4)
         run: |

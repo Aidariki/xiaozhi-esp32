@@ -34,6 +34,10 @@ jobs:
           # Для стандартного облика удалите её или выберите EYES_TYPE_STANDARD.
           echo 'CONFIG_EYES_TYPE_KAWAII=y' >> sdkconfig.defaults
           idf.py set-target esp32p4
+          # Полная очистка перед сборкой: гарантирует, что sdkconfig и
+          # объекты пересозданы с нуля (устраняет ошибки линковки от
+          # остатков предыдущих конфигураций, см. idf.py fullclean).
+          idf.py fullclean
           idf.py build
 
       - name: Upload firmware artifact

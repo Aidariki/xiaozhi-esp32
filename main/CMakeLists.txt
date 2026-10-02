@@ -341,7 +341,15 @@ idf_component_register(SRCS ${SOURCES}
 # Макрос глаз задаётся ПОСЛЕ idf_component_register: до регистрации
 # цель ${COMPONENT_LIB} ещё не существует (иначе CMake падает с ошибкой
 # «Cannot specify compile definitions for target ...»).
+# ВАЖНО: при включённом MINIMAL_BUILD (корневой CMakeLists.txt) папка
+# components/ не сканируется автоматически, поэтому компонент eyes
+# регистрируется явно ниже — иначе линковка падает с «undefined
+# reference to eyes::...».
 if(EYES_ENABLED)
+    if(NOT TARGET idf::eyes AND NOT TARGET eyes)
+        add_subdirectory(${CMAKE_SOURCE_DIR}/components/eyes
+                         ${CMAKE_BINARY_DIR}/esp-idf/eyes)
+    endif()
     target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
 endif()
 

@@ -19,12 +19,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Activate ESP-IDF environment
+      # Важно: каждая запись run выполняется в отдельном шелле, поэтому
+      # активация ESP-IDF (. export.sh) должна быть в том же шаге, что и сборка.
+      - name: Сборка прошивки (Guition JC1060P470C, ESP32-P4)
         run: |
           . /opt/esp/idf/export.sh
-
-      - name: Build firmware (Guition JC1060P470C, ESP32-P4)
-        run: |
           idf.py set-target esp32p4
           echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig
           idf.py build

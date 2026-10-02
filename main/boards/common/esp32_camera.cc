@@ -46,7 +46,12 @@ Esp32Camera::Esp32Camera(const camera_config_t &config) {
         s->set_hmirror(s, kConfiguredHMirror ? 1 : 0);
         s->set_vflip(s, kConfiguredVFlip ? 1 : 0);
 #endif
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        /* IDF 6.x: в camera_config_t поле pixel_format переименовано */
+        ESP_LOGI(TAG, "Camera initialized");
+#else
         ESP_LOGI(TAG, "Camera initialized: format=%d", config.pixel_format);
+#endif
     }
 
     streaming_on_ = true;

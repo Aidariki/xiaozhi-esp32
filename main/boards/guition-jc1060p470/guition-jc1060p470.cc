@@ -119,7 +119,13 @@ private:
         dpi_config.virtual_channel = 0;
         dpi_config.dpi_clk_src = MIPI_DSI_DPI_CLK_SRC_DEFAULT;
         dpi_config.dpi_clock_freq_mhz = 50;
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(6, 0, 0)
+        /* IDF 6.x: поле pixel_format заменено на in_color_format / out_color_format */
+        dpi_config.in_color_format = LCD_COLOR_FMT_RGB565;
+        dpi_config.out_color_format = LCD_COLOR_FMT_RGB565;
+#else
         dpi_config.pixel_format = LCD_COLOR_PIXEL_FORMAT_RGB565;
+#endif
         dpi_config.num_fbs = 1;
         dpi_config.video_timing.h_size = 1024;
         dpi_config.video_timing.v_size = 600;

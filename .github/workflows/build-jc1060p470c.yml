@@ -29,6 +29,10 @@ jobs:
           # иначе BOARD_DIR не определится и конфигурация упадёт.
           echo 'CONFIG_IDF_TARGET="esp32p4"' >> sdkconfig.defaults
           echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig.defaults
+          # Выбранный в конфигураторе («Интерактивные глаза (JC1060P470C)»)
+          # нестандартный облик глаз включается одной строкой ниже.
+          # Для стандартного облика удалите её или выберите EYES_TYPE_STANDARD.
+          echo 'CONFIG_EYES_TYPE_KAWAII=y' >> sdkconfig.defaults
           idf.py set-target esp32p4
           idf.py build
 

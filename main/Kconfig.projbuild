@@ -136,6 +136,88 @@ choice DISPLAY_STYLE
 
 endchoice
 
+menu "Интерактивные глаза (JC1060P470C)"
+
+choice EYES_TYPE
+    prompt "Облик интерактивных глаз"
+    default EYES_TYPE_STANDARD
+    depends on BOARD_TYPE_GUITION_JC1060P470
+    help
+        Выберите вариант анимированных «глаз» ассистента на экране.
+        Варианты собраны из популярных реализаций сообщества
+        (xiaozhi-esp32, M5Stack CoreS3 eyes, LVGL EYES example,
+        xiaozhi-esp32-lcd-example/kawaii, ESP32 robot-глаза).
+        Выбор можно переключить в любой момент кнопкой BOOT
+        (короткое нажатие) — новый облик сохранится в настройках.
+
+    config EYES_TYPE_STANDARD
+        bool "Стандартный (эмодзи и иконки Material Symbols)"
+        help
+            Штатный облик XiaoZhi: крупный эмодзи/иконка настроения
+            по центру экрана. Никаких дополнительных объектов LVGL.
+
+    config EYES_TYPE_CLASSIC
+        bool "Классические круглые глаза (стиль M5Stack CoreS3)"
+        help
+            Два белых круга с тёмной окантовкой и цветным зрачком.
+            Зрачок меняет размер и положение по настроению,
+            периодическое моргание «веком».
+
+    config EYES_TYPE_ROBOT
+        bool "Робот-глаза (широкие визоры, стиль ESP32-роботов)"
+        help
+            Прямоугольные «визоры» на чёрной подложке со светящейся
+            щелевидной зрачкой-полосой. Цвет полосы зависит от
+            настроения (синий/жёлтый/красный/серый).
+
+    config EYES_TYPE_PIXEL
+        bool "Пиксельные глаза (ретро 8-bit)"
+        help
+            Квадратные глаза с зелёной неоновой рамкой в стиле
+            пиксельной графики. Моргание выполняется мгновенной
+            «засветкой» всего глаза.
+
+    config EYES_TYPE_ANIME
+        bool "Аниме-глаза (с ресницами и бликами)"
+        help
+            Большие выразительные глаза с фиолетовой радужкой,
+            белым бликом и тремя ресницами сверху. Стиль примера
+            LVGL «EYES».
+
+    config EYES_TYPE_KAWAII
+        bool "Каваи-глаза (arco-стиль, градиентные)"
+        help
+            Круглые глаза с вертикальным градиентом цвета настроения
+            и маленьким чёрным зрачком. Милый минималистичный стиль
+            из клона xiaozhi-esp32-lcd-example.
+
+endchoice
+
+# Числовой идентификатор выбранного облика (используется кодом платы
+# для отображения названия варианта при переключении кнопкой BOOT).
+config EYES_TYPE_ID_DEFAULT
+    int
+    depends on BOARD_TYPE_GUITION_JC1060P470
+    default 0 if EYES_TYPE_STANDARD
+    default 1 if EYES_TYPE_CLASSIC
+    default 2 if EYES_TYPE_ROBOT
+    default 3 if EYES_TYPE_PIXEL
+    default 4 if EYES_TYPE_ANIME
+    default 5 if EYES_TYPE_KAWAII
+    default 0
+
+config EYES_BLINK_INTERVAL_MS
+    int "Интервал моргания, мс"
+    depends on BOARD_TYPE_GUITION_JC1060P470 && !EYES_TYPE_STANDARD
+    range 1000 20000
+    default 4000
+    help
+        Как часто глаза будут моргать в выбранном облике.
+        Меньше значение — чаще моргание (выглядит «живее»,
+        но чуть больше нагрузки на LVGL-таймеры).
+
+endmenu
+
 config USE_MULTILINE_CHAT_MESSAGE
     bool "Многострочный чат (только стандартный режим)"
     depends on USE_DEFAULT_MESSAGE_STYLE

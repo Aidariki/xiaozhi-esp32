@@ -16,6 +16,7 @@ set(SOURCES "audio/audio_codec.cc"
             "display/display.cc"
             "display/text_glyph.cc"
             "display/lcd_display.cc"
+                    "display/eyes_display.cc"
             "display/oled_display.cc"
             "display/lvgl_display/lvgl_display.cc"
             "display/emote_display.cc"
@@ -289,6 +290,13 @@ if(CONFIG_BOARD_TYPE_GUITION_JC1060P470)
         esp_driver_sdmmc
         sdmmc
     )
+    # Интерактивные глаза: компонент eyes и макрос CONFIG_USE_EYES
+    # подключаются только если выбран нестандартный облик
+    # (см. Kconfig -> «Интерактивные глаза»).
+    if(NOT CONFIG_EYES_TYPE_STANDARD)
+        list(APPEND MAIN_PRIV_REQUIRES_EXTRA eyes)
+        target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
+    endif()
 endif()
 idf_component_register(SRCS ${SOURCES}
                     EMBED_FILES ${LANG_SOUNDS} ${COMMON_SOUNDS}

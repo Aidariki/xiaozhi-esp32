@@ -23,6 +23,7 @@
 #include "button.h"
 #include "config.h"
 #include "display/display.h"
+#include "display/eyes_display.h"
 #include "display/lcd_display.h"
 #include "esp_video.h"
 #include "lvgl_theme.h"
@@ -50,7 +51,7 @@ class GuitionJC1060P470Board : public WifiBoard {
 private:
     i2c_master_bus_handle_t codec_i2c_bus_ = nullptr;
     Button boot_button_;
-    LcdDisplay* display_ = nullptr;
+    EyesLcdDisplay* display_ = nullptr;
     esp_lcd_dsi_bus_handle_t dsi_bus_ = nullptr;
     esp_ldo_channel_handle_t dsi_phy_power_ = nullptr;
     esp_lcd_touch_handle_t tp_ = nullptr;
@@ -160,7 +161,7 @@ private:
         ESP_ERROR_CHECK(esp_lcd_panel_reset(panel));
         ESP_ERROR_CHECK(esp_lcd_panel_init(panel));
 
-        display_ = new MipiLcdDisplay(panel_io, panel, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+        display_ = new EyesLcdDisplay(panel_io, panel, DISPLAY_WIDTH, DISPLAY_HEIGHT,
                                       DISPLAY_OFFSET_X, DISPLAY_OFFSET_Y, DISPLAY_MIRROR_X,
                                       DISPLAY_MIRROR_Y, DISPLAY_SWAP_XY);
         ESP_LOGI(TAG, "Дисплей JD9165 1024x600 инициализирован");
@@ -174,7 +175,17 @@ private:
                 EnterWifiConfigMode();
                 return;
             }
+#ifdef CONFIG_USE_EYES
+            // Короткое нажатие BOOT переключает облик глаз (сохраняется в настройки).
+            static const char* kEyesNames[] = {
+                "Стандартный", "Классические", "Робот", "Пиксельные",
+                "Аниме", "Каваи"};
+            display_->CycleEyesType();
+            int t = display_->CurrentEyesType();
+            display_->ShowNotification(std::string("Глаза: ") + kEyesNames[t], 2000);
+#else
             app.ToggleChatState();
+#endif
         });
     }
 
@@ -314,6 +325,9 @@ public:
         InitializeCamera();
         InitializeFonts();
         GetBacklight()->RestoreBrightness();
+#ifdef CONFIG_USE_EYES
+        display_->EnableEyes();
+#endif
         ESP_LOGI(TAG, "Плата Guition JC1060P470C готова");
     }
 

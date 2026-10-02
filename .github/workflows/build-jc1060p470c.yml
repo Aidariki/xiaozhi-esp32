@@ -19,21 +19,11 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Configure board (Guition JC1060P470C, ESP32-P4)
+      - name: Build firmware (Guition JC1060P470C, ESP32-P4)
         run: |
-          mkdir -p main
-          cat >> main/Kconfig.projbuild <<'EOF'
-
-          menu "Custom Board Config"
-              config CUSTOM_BOARD_TYPE
-                  string
-                  default BOARD_TYPE_GUITION_JC1060P470
-          endmenu
-          EOF
-
-      - name: Build firmware
-        run: |
+          . $IDF_PATH/export.sh
           idf.py set-target esp32p4
+          echo 'CONFIG_BOARD_TYPE_GUITION_JC1060P470=y' >> sdkconfig
           idf.py build
 
       - name: Upload firmware artifact

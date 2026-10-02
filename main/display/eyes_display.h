@@ -8,7 +8,7 @@
 #include "settings.h"
 
 #ifdef CONFIG_USE_EYES
-#include "eyes.h"
+#include "components/eyes/eyes.h"
 #endif
 
 class EyesLcdDisplay : public MipiLcdDisplay {

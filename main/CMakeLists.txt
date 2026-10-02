@@ -301,6 +301,13 @@ if(CONFIG_BOARD_TYPE_GUITION_JC1060P470)
         set(EYES_ENABLED ON)
     endif()
 endif()
+if(EYES_ENABLED)
+    # Путь к заголовкам компонента eyes добавляем в INCLUDE_DIRS вручную:
+    # при включённом MINIMAL_BUILD (см. корневой CMakeLists.txt) привязка
+    # через PRIV_REQUIRES не даёт автоматической публикации include-путей.
+    list(APPEND INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/components/eyes)
+endif()
+
 idf_component_register(SRCS ${SOURCES}
                     EMBED_FILES ${LANG_SOUNDS} ${COMMON_SOUNDS}
                     INCLUDE_DIRS ${INCLUDE_DIRS}
@@ -331,6 +338,14 @@ idf_component_register(SRCS ${SOURCES}
                         ${MAIN_PRIV_REQUIRES_EXTRA}
                     )
 
+# Макрос глаз задаётся ПОСЛЕ idf_component_register: до регистрации
+# цель ${COMPONENT_LIB} ещё не существует (иначе CMake падает с ошибкой
+# «Cannot specify compile definitions for target ...»).
+if(EYES_ENABLED)
+    target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
+endif()
+
+
 # Use target_compile_definitions to define the reported board identity
 # If BOARD_NAME is empty, use BOARD_TYPE
 if(NOT BOARD_NAME)
@@ -347,14 +362,6 @@ if(NOT _font_match)
 endif()
 set(TEXT_FONT_SIZE "${CMAKE_MATCH_1}")
 set(TEXT_FONT_BPP "${CMAKE_MATCH_2}")
-# Интерактивные глаза: макрос CONFIG_USE_EYES включается, если в
-# конфигураторе выбран нестандартный облик глаз. Добавляется ПОСЛЕ
-# idf_component_register — до регистрации цель не существует (иначе
-# CMake падает с «Cannot specify compile definitions for target ...»).
-if(NOT CMAKE_BUILD_EARLY_EXPANSION AND EYES_ENABLED)
-    target_compile_definitions(${COMPONENT_LIB} PRIVATE CONFIG_USE_EYES=1)
-endif()
-
 if(NOT CMAKE_BUILD_EARLY_EXPANSION)
     target_compile_definitions(${COMPONENT_LIB}
                         PRIVATE BOARD_TYPE=\"${BOARD_TYPE}\" BOARD_NAME=\"${BOARD_NAME}\"

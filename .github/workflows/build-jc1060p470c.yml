@@ -32,7 +32,7 @@ jobs:
           # Выбранный в конфигураторе («Интерактивные глаза (JC1060P470C)»)
           # нестандартный облик глаз включается одной строкой ниже.
           # Для стандартного облика удалите её или выберите EYES_TYPE_STANDARD.
-          echo 'CONFIG_EYES_TYPE_KAWAII=y' >> sdkconfig.defaults
+          echo "CONFIG_EYES_TYPE_ID_DEFAULT=5" >> sdkconfig.defaults
           idf.py set-target esp32p4
           # Полная очистка перед сборкой: гарантирует, что sdkconfig и
           # объекты пересозданы с нуля (устраняет ошибки линковки от

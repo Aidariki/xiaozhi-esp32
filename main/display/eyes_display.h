@@ -7,9 +7,12 @@
 #include "lcd_display.h"
 #include "settings.h"
 
-// Заголовки глаз доступны всегда (Kconfig-макрос CONFIG_EYES_TYPE_*
-// задаётся IDF автоматически); реализации компилируются только при
-// выбранном нестандартном облике — см. main/CMakeLists.txt.
+// Заголовок глаз подключается ВСЕГДА (объявления eyes:: не зависят от
+// Kconfig), иначе eyes.cc и eyes_display.cc компилировались бы в
+// несогласованные переводы единиц (один с реализацией, другой без) —
+// отсюда «undefined reference to eyes::...» на этапе линковки.
+// Реализации функций eyes:: компилируются только при выбранном
+// нестандартном облике — см. #if в eyes.cc / eyes_display.cc.
 #include "eyes.h"
 
 class EyesLcdDisplay : public MipiLcdDisplay {

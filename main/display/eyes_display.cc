@@ -9,9 +9,10 @@ const char* EyesLcdDisplay::EyesTypeName(int t) {
     return kNames[t];
 }
 
-#if defined(CONFIG_EYES_TYPE_CLASSIC) || defined(CONFIG_EYES_TYPE_ROBOT) || \
-    defined(CONFIG_EYES_TYPE_PIXEL) || defined(CONFIG_EYES_TYPE_ANIME) || \
-    defined(CONFIG_EYES_TYPE_KAWAII)
+// Реализация слоя глаз компилируется для платы JC1060P470C ВСЕГДА —
+// облик выбирается в рантайме (Kconfig-дефолт, кнопка BOOT, MCP).
+// Стандартный облик обрабатывается ранним выходом по eyes_type_ == 0.
+#if CONFIG_BOARD_TYPE_GUITION_JC1060P470
 #include <esp_log.h>
 #include <lvgl.h>
 #include "settings.h"
@@ -65,10 +66,11 @@ void EyesLcdDisplay::SetEmotion(const char* emotion) {
     eyes::set_mood(eyes_layer_, mood);
 }
 #else
-// Стандартный облик: обёртка не добавляет ничего сверх базового класса.
+// Сборка для другой платы (глаза не используются): обёртка не добавляет
+// ничего сверх базового класса.
 void EyesLcdDisplay::EnableEyes() {}
 void EyesLcdDisplay::DisableEyes() {}
 void EyesLcdDisplay::SetEmotion(const char* emotion) {
     MipiLcdDisplay::SetEmotion(emotion);
 }
-#endif
+#endif  // CONFIG_BOARD_TYPE_GUITION_JC1060P470

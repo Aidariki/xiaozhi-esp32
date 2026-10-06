@@ -1,10 +1,12 @@
 // Реализация интерактивных глаз (варианты из сообщества xiaozhi-esp32 /
 // M5Stack CoreS3 / LVGL examples / xiaozhi-esp32-lcd-example).
-// Если в конфигураторе выбран штатный облик глаз, код ниже
-// исключается из сборки (пустая единица трансляции).
-#if defined(CONFIG_EYES_TYPE_CLASSIC) || defined(CONFIG_EYES_TYPE_ROBOT) || \
-    defined(CONFIG_EYES_TYPE_PIXEL) || defined(CONFIG_EYES_TYPE_ANIME) || \
-    defined(CONFIG_EYES_TYPE_KAWAII)
+// ВАЖНО: реализация компилируется ВСЕГДА для платы JC1060P470C.
+// Облик выбирается в рантайме (Kconfig по умолчанию + кнопка BOOT +
+// MCP-команда), поэтому препроцессорные guard'ы по CONFIG_EYES_TYPE_*
+// здесь недопустимы: при «Стандартном» дефолте eyes.cc становился пустой
+// единицей трансляции, а eyes_display.cc — нет, что давало
+// «undefined reference to eyes::...» на этапе линковки.
+#if CONFIG_BOARD_TYPE_GUITION_JC1060P470
 #include "eyes.h"
 
 #include <esp_log.h>
@@ -255,5 +257,5 @@ static void apply_mood(EyesState* st) {
 
 }  // namespace eyes
 
-#endif  // выбор нестандартного облика глаз
+#endif  // CONFIG_BOARD_TYPE_GUITION_JC1060P470
 
